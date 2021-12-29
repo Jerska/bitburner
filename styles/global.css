@@ -1,0 +1,85 @@
+@import './vars.css';
+
+@import './reset.css';
+@import './loader.css';
+
+html, body {
+  height: 100%;
+  overflow: auto;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--main-background-color);
+  color: var(--main-font-color);
+  font-family: "Lucida Console", "Lucida Sans Unicode", "Fira Mono", Consolas, "Courier New", Courier, monospace, "Times New Roman";
+  line-height: 1.5rem;
+  padding-bottom: 24px;
+}
+
+pre {
+  white-space: pre;
+}
+
+h1 {
+  font-size: 1.9em;
+  margin-top: 32px;
+  margin-bottom: 8px;
+}
+
+h2 {
+  font-size: 1.6em;
+  margin-top: 24px;
+  margin-bottom: 8px;
+}
+
+h3 {
+  font-size: 1.4em;
+  margin-top: 16px;
+  margin-bottom: 8px;
+}
+
+h4 {
+  font-size: 1.2em;
+  margin-top: 12px;
+  margin-bottom: 8px;
+}
+
+ul {
+  padding-left: 16px;
+  list-style-type: ' - ';
+}
+
+a {
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+#root {
+  max-width: 1024px;
+  margin: auto;
+}
+
+#page-title {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+#page-title em {
+  font-weight: bold;
+}
+
+.section {
+  margin-top: 32px;
+  border-top: 1px solid var(--main-border-color);
+}
+
+.error-container {
+  border-left: 2px solid var(--error-color);
+  padding-left: 16px;
+  margin-left: -16px;
+}

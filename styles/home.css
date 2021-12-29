@@ -1,0 +1,24 @@
+@import './vars.css';
+
+#contract-input {
+  margin-top: 16px;
+}
+
+#contract-input input {
+  margin-top: 8px;
+  padding: 16px;
+  border: 2px solid var(--main-color);
+  width: 100%;
+}
+
+#loader {
+  transform: scale(40%);
+  margin-top: 16px;
+  margin-bottom: 32px;
+}
+
+#copy-message {
+  margin-top: 4px;
+  font-size: 0.9em;
+  font-style: italic;
+}

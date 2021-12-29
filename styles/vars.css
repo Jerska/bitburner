@@ -1,0 +1,9 @@
+:root {
+  --main-color: #00cc00;
+  --soft-main-color: #009900;
+  --reverse-font-color: white;
+  --main-background-color: black;
+  --main-font-color: var(--main-color);
+  --main-border-color: #444;
+  --error-color: #cc3333;
+}
