@@ -21,7 +21,7 @@ const DL_BASE_URL = 'https://raw.githubusercontent.com/jerska/bitburner/';
 
 const FILES = ['utils.args.js', 'utils.data.js', 'command.gitPull.js'];
 
-function cleanup() {
+function cleanup(ns) {
   ns.rm(TMP_BRANCH_FILE);
 }
 
@@ -46,7 +46,7 @@ export async function main(ns) {
     const branch = ns.read(TMP_BRANCH_FILE);
     if (!branch) {
       ns.tprint(`Empty response from GitHub's API: ${API_TARGET}`);
-      cleanup();
+      cleanup(ns);
       return;
     }
 
@@ -59,13 +59,13 @@ export async function main(ns) {
       ns.tprint(`Couldn't parse response from GitHub's API: ${API_TARGET}`);
       ns.tprint(`Response:\n${branch}`);
       ns.tprint(`Error: ${err.message}`);
-      cleanup();
+      cleanup(ns);
       return;
     }
     if (!newSha) {
       ns.tprint(`Couldn't retrieve sha from GitHub`);
       ns.tprint(`GitHub's API response:\n${JSON.stringify(branchData, null, 2)}`);
-      cleanup();
+      cleanup(ns);
       return;
     }
   }
@@ -80,7 +80,7 @@ export async function main(ns) {
   if (!force && currentSha === newSha) {
     ns.tprint(`Sha ${newSha} is the same as currently installed, aborting.`);
     ns.tprint('To force installation, pass `-f`.');
-    cleanup();
+    cleanup(ns);
     return;
   }
 
@@ -107,5 +107,5 @@ export async function main(ns) {
   }
 
   // Cleanup
-  cleanup();
+  cleanup(ns);
 }
