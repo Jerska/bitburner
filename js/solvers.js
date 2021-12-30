@@ -1,9 +1,10 @@
 import { wait } from './utils.js';
 import { solvers, getSolverFilename, getSolverPath } from '../scripts/solvers/index.js';
 
-const $output = document.querySelector('#output');
-const $loader = document.querySelector('#loader');
 const $files = document.querySelector('#files');
+const $output = document.querySelector('#tests-output');
+const $filesLoader = document.querySelector('#files-loader');
+const $testsLoader = document.querySelector('#tests-loader');
 
 function showFiles() {
   solvers
@@ -17,6 +18,7 @@ function showFiles() {
       $li.appendChild($a);
       $files.appendChild($li);
     });
+  $filesLoader.style.display = 'none';
 }
 
 function logger(type, ...args) {
@@ -88,7 +90,7 @@ async function runTests() {
   }
 
   log(`Test suite complete: ${passed}/${total}`);
-  $loader.style.display = 'none';
+  $testsLoader.style.display = 'none';
 }
 
 runTests();
