@@ -23,3 +23,12 @@ It is meant to be used before programmatic solving is doable (i.e. not enough RA
 The page provides an input in which to copy the entire contract content.
 Once pasted, the correct solver is taken and the solution displayed (and optionally copied to your clipboard).
 
+## Setup
+
+To setup your bitburner game with all the scripts and aliases of this repository, run:
+
+```sh
+alias gpl="run scripts/gitPull.js";
+wget https://raw.githubusercontent.com/Jerska/bitburner/main/scripts/gitPull.js scripts/gitPull.js
+gpl
+```
