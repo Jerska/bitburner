@@ -60,7 +60,8 @@ a {
 }
 
 #root {
-  max-width: 1024px;
+  max-width: calc(1024px + 2*32px);
+  padding: 0 32px;
   margin: auto;
 }
 
