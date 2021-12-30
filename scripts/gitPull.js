@@ -19,7 +19,7 @@ const TMP_BRANCH_FILE = 'tmp/branch.txt';
 const API_TARGET = 'https://api.github.com/repos/jerska/bitburner/commits/main';
 const DL_BASE_URL = 'https://raw.githubusercontent.com/jerska/bitburner/';
 
-const FILES = ['scripts/utils/ports.js', 'scripts/gitPull.js'];
+const FILES = ['scripts/utils/args.js', 'scripts/utils/ports.js', 'scripts/gitPull.js'];
 
 function cleanup() {
   ns.rm(TMP_BRANCH_FILE);
