@@ -9,13 +9,13 @@
  * Options:
  *   -f     Force download, even if version matches existing
  */
-import { VERSION_PORT, NO_PORT_DATA, peekPort, upsertPort } from './ports';
+import { VERSION_PORT, NO_PORT_DATA, peekPort, upsertPort } from './utils/ports';
 
 const TMP_BRANCH_FILE = 'tmp/branch.txt';
 const API_TARGET = 'https://api.github.com/repos/jerska/bitburner/commits/main';
 const DL_BASE_URL = 'https://raw.githubusercontent.com/jerska/bitburner/main/';
 
-const FILES = ['scripts/gitPull.js'];
+const FILES = ['scripts/utils/ports.js', 'scripts/gitPull.js'];
 
 function cleanup() {
   ns.rm(TMP_BRANCH_FILE);
