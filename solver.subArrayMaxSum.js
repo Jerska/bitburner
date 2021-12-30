@@ -1,5 +1,5 @@
 export const name = 'Subarray with Maximum Sum';
-export const slug = 'subArraySum';
+export const slug = 'subArrayMaxSum';
 
 export function solve(input) {
   if (input.length < 1) return 0;

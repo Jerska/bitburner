@@ -8,7 +8,7 @@ function buildError(message, usage = null) {
 
 function buildNbArgsError(min, max, usage = null) {}
 
-export function parseArgs(ns, { minArgs = 0, maxArgs = null, usage = null }) {
+export function parseArgs(ns, { minArgs = 0, maxArgs = null, USAGE: usage = null }) {
   const opts = {};
   const args = [];
   for (const arg of ns.args) {

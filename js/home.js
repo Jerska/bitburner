@@ -1,5 +1,5 @@
 import { escapeHTML, wait } from './utils.js';
-import { solvers, getSolverPath, getSolverFilename } from '../scripts/solvers/index.js';
+import { solvers, getSolverPath, getSolverFilename } from '../solvers.js';
 
 const $contractInput = document.querySelector('#contract-input input');
 const $loader = document.querySelector('#loader');

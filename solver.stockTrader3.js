@@ -1,4 +1,4 @@
-import { getMaxGain } from './stockTrader4.js';
+import { getMaxGain } from './solver.stockTrader4.js';
 
 export const name = 'Algorithmic Stock Trader III';
 export const slug = 'stockTrader3';

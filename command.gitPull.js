@@ -10,16 +10,16 @@
  */
 const USAGE = 'gpl [-f] [<sha>]';
 
-import { peekPort, upsertPort } from './utils/ports.js';
-import { parseArgs } from './utils/args.js';
+import { readData, upsertData } from './utils.data.js';
+import { parseArgs } from './utils.args.js';
 
-import { VERSION_PORT, NO_PORT_DATA } from './utils/ports.js';
+import { VERSION_DATA, NO_DATA } from './utils.data.js';
 
 const TMP_BRANCH_FILE = 'tmp/branch.txt';
 const API_TARGET = 'https://api.github.com/repos/jerska/bitburner/commits/main';
 const DL_BASE_URL = 'https://raw.githubusercontent.com/jerska/bitburner/';
 
-const FILES = ['scripts/utils/args.js', 'scripts/utils/ports.js', 'scripts/gitPull.js'];
+const FILES = ['utils.args.js', 'utils.data.js', 'utils.gitPull.js'];
 
 function cleanup() {
   ns.rm(TMP_BRANCH_FILE);
@@ -30,7 +30,7 @@ function fileUrl(sha, file) {
 }
 
 export async function main(ns) {
-  const { args, opts } = parseArgs(ns);
+  const { args, opts } = parseArgs(ns, { USAGE });
   const force = opts.f;
 
   if (args.length > 1) {
@@ -45,8 +45,8 @@ export async function main(ns) {
   }
 
   // Read GitHub's data
-  const data = ns.read(TMP_BRANCH_FILE);
-  if (!data) {
+  const branch = ns.read(TMP_BRANCH_FILE);
+  if (!branch) {
     ns.tprint(`Empty response from GitHub's API: ${API_TARGET}`);
     cleanup();
     return;
@@ -55,18 +55,18 @@ export async function main(ns) {
   // Get sha
   let newSha;
   try {
-    ({ newSha } = JSON.parse(data));
+    ({ newSha } = JSON.parse(branch));
   } catch (err) {
     ns.tprint(`Couldn't parse response from GitHub's API: ${API_TARGET}`);
-    ns.tprint(`Response:\n${data}`);
+    ns.tprint(`Response:\n${branch}`);
     ns.tprint(`Error: ${err.message}`);
     cleanup();
     return;
   }
 
   // Get current sha
-  currentSha = peekPort(ns, VERSION_PORT);
-  if (currentSha === NO_PORT_DATA) {
+  currentSha = readData(ns, 'version');
+  if (currentSha === NO_DATA) {
     ns.tprint('No current version found: first installation');
   }
 
@@ -79,8 +79,8 @@ export async function main(ns) {
     ns.tprint(`* ${file}: ${success ? 'OK' : 'FAILED'}`);
   }
 
-  // Update sha in VERSION_PORT
-  upsertPort(ns, VERSION_PORT, newSha);
+  // Update version data
+  upsertData(ns, 'version', newSha);
 
   // Print summary
   if (failed.length > 0) {

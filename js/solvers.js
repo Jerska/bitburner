@@ -1,5 +1,5 @@
 import { wait } from './utils.js';
-import { solvers, getSolverFilename, getSolverPath } from '../scripts/solvers/index.js';
+import { solvers, getSolverFilename, getSolverPath } from '../solvers.js';
 
 const $files = document.querySelector('#files');
 const $output = document.querySelector('#tests-output');

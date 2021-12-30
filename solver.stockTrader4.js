@@ -54,7 +54,7 @@ export function solve([nbOperations, input]) {
 }
 
 export function textSolve(lines) {
-  const input = lines[1].trim();
+  const input = lines[2].trim();
   const parsed = JSON.parse(input);
   const res = solve(parsed);
   return res;

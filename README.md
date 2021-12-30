@@ -4,6 +4,11 @@
 
 This repository is my personal collection of scripts & tools used in my bitburner game.
 
+## Notes
+
+The repository has a lot of files at the root.  
+This is due to the fact that bitburner doesn't support relative imports.
+
 ## Tools
 
 ### Contract solver
@@ -28,10 +33,10 @@ Once pasted, the correct solver is taken and the solution displayed (and optiona
 To setup your bitburner game with all the scripts and aliases of this repository, run:
 
 ```sh
-alias gpl="run scripts/gitPull.js";
-wget https://raw.githubusercontent.com/jerska/bitburner/main/scripts/utils/args.js scripts/utils/args.js;
-wget https://raw.githubusercontent.com/jerska/bitburner/main/scripts/utils/ports.js scripts/utils/ports.js;
-wget https://raw.githubusercontent.com/jerska/bitburner/main/scripts/gitPull.js scripts/gitPull.js;
+alias gpl="run command.gitPull.js";
+wget https://raw.githubusercontent.com/jerska/bitburner/main/utils.args.js utils.args.js;
+wget https://raw.githubusercontent.com/jerska/bitburner/main/utils.data.js utils.ports.js;
+wget https://raw.githubusercontent.com/jerska/bitburner/main/command.gitPull.js command.gitPull.js;
 ```
 
 Then:
