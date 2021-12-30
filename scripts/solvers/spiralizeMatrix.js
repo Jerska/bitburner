@@ -34,10 +34,7 @@ export function solve(input) {
 }
 
 export function textSolve(lines) {
-  const subLines = lines
-    .slice(3, -15)
-    .trim()
-    .map((l) => l.trim());
+  const subLines = lines.slice(3, -15).map((l) => l.trim());
   const input = `[${subLines.join(',')}]`;
   const parsed = JSON.parse(input);
   const res = solve(parsed);
