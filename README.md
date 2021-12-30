@@ -4,7 +4,9 @@
 
 This repository is my personal collection of scripts & tools used in my bitburner game.
 
-## Contract solver
+## Tools
+
+### Contract solver
 
 <a href="https://jerska.github.io/bitburner/">
 <p align="center">
