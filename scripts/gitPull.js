@@ -9,7 +9,7 @@
  * Options:
  *   -f     Force download, even if version matches existing
  */
-import { VERSION_PORT, NO_PORT_DATA, peekPort, upsertPort } from './utils/ports';
+import { VERSION_PORT, NO_PORT_DATA, peekPort, upsertPort } from './utils/ports.js';
 
 const TMP_BRANCH_FILE = 'tmp/branch.txt';
 const API_TARGET = 'https://api.github.com/repos/jerska/bitburner/commits/main';
