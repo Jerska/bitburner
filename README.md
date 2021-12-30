@@ -8,7 +8,9 @@ This repository is my personal collection of scripts & tools used in my bitburne
 
 <a href="https://jerska.github.io/bitburner/">
 <p align="center">
-![Contract solver](img/contract_solver.png)
+<img src="img/contract_solver.png" width="400" />
+</p>
+<p align="center">
 <em>Contract solver</em>
 </p>
 </a>
