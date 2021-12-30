@@ -13,7 +13,7 @@ const NO_PORT_DATA = 'NULL PORT DATA';
 const MAX_PORTS = 20;
 
 function getFile(type) {
-  return `data/${type}.txt`;
+  return `data.${type}.txt`;
 }
 
 function getPort(type) {

@@ -6,7 +6,12 @@ function buildError(message, usage = null) {
   return new Error(err);
 }
 
-function buildNbArgsError(min, max, usage = null) {}
+function buildNbArgsError(min, max, usage = null) {
+  let range = [min, 'n'];
+  if (max !== null) range.push(max);
+  const message = `ns.args should contain ${range.join(' <= ')} arguments (excluding options)`;
+  return buildError(message, usage);
+}
 
 export function parseArgs(ns, { minArgs = 0, maxArgs = null, USAGE: usage = null }) {
   const opts = {};

@@ -13,13 +13,13 @@ const USAGE = 'gpl [-f] [<sha>]';
 import { readData, upsertData } from './utils.data.js';
 import { parseArgs } from './utils.args.js';
 
-import { VERSION_DATA, NO_DATA } from './utils.data.js';
+import { NO_DATA } from './utils.data.js';
 
-const TMP_BRANCH_FILE = 'tmp/branch.txt';
+const TMP_BRANCH_FILE = 'tmp.branch.txt';
 const API_TARGET = 'https://api.github.com/repos/jerska/bitburner/commits/main';
 const DL_BASE_URL = 'https://raw.githubusercontent.com/jerska/bitburner/';
 
-const FILES = ['utils.args.js', 'utils.data.js', 'utils.gitPull.js'];
+const FILES = ['utils.args.js', 'utils.data.js', 'command.gitPull.js'];
 
 function cleanup() {
   ns.rm(TMP_BRANCH_FILE);
@@ -65,7 +65,7 @@ export async function main(ns) {
   }
 
   // Get current sha
-  currentSha = readData(ns, 'version');
+  const currentSha = readData(ns, 'version');
   if (currentSha === NO_DATA) {
     ns.tprint('No current version found: first installation');
   }
