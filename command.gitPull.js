@@ -65,6 +65,7 @@ export async function main(ns) {
     if (!newSha) {
       ns.tprint(`Couldn't retrieve sha from GitHub`);
       ns.tprint(`GitHub's API response:\n${JSON.stringify(branchData, null, 2)}`);
+      cleanup();
       return;
     }
   }
@@ -79,6 +80,7 @@ export async function main(ns) {
   if (!force && currentSha === newSha) {
     ns.tprint(`Sha ${newSha} is the same as currently installed, aborting.`);
     ns.tprint('To force installation, pass `-f`.');
+    cleanup();
     return;
   }
 
@@ -103,4 +105,7 @@ export async function main(ns) {
   } else {
     ns.tprint(`Successfully pulled version ${newSha}`);
   }
+
+  // Cleanup
+  cleanup();
 }
