@@ -13,3 +13,7 @@ export function textSolve(lines) {
   const res = solve(parsed);
   return res;
 }
+
+export const tests = [
+  // See stockTrader4.js
+];

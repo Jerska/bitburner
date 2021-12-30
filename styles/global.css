@@ -3,7 +3,8 @@
 @import './reset.css';
 @import './loader.css';
 
-html, body {
+html,
+body {
   height: 100%;
   overflow: auto;
 }
@@ -16,7 +17,8 @@ body {
 body {
   background: var(--main-background-color);
   color: var(--main-font-color);
-  font-family: "Lucida Console", "Lucida Sans Unicode", "Fira Mono", Consolas, "Courier New", Courier, monospace, "Times New Roman";
+  font-family: 'Lucida Console', 'Lucida Sans Unicode', 'Fira Mono', Consolas, 'Courier New',
+    Courier, monospace, 'Times New Roman';
   line-height: 1.5rem;
   padding-bottom: 24px;
 }
@@ -60,7 +62,7 @@ a {
 }
 
 #root {
-  max-width: calc(1024px + 2*32px);
+  max-width: calc(1024px + 2 * 32px);
   padding: 0 32px;
   margin: auto;
 }

@@ -1,4 +1,4 @@
-export function escapeHTML(s){
+export function escapeHTML(s) {
   const p = document.createElement('p');
   const text = document.createTextNode(s);
   p.appendChild(text);
@@ -6,5 +6,5 @@ export function escapeHTML(s){
 }
 
 export async function wait(ms) {
-  return await new Promise(resolve => setTimeout(resolve, ms));
+  return await new Promise((resolve) => setTimeout(resolve, ms));
 }

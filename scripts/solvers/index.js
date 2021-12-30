@@ -15,6 +15,14 @@ import * as uniquePathsGrid2 from './uniquePathsGrid2.js';
 import * as validMathExpressions from './validMathExpressions.js';
 import * as waysToSum from './waysToSum.js';
 
+export function getSolverFilename(slug) {
+  return `${slug}.js`;
+}
+
+export function getSolverPath(slug) {
+  return `scripts/solvers/${getSolverFilename(slug)}`;
+}
+
 export const solvers = [
   arrayJump,
   ipAddresses,
@@ -33,4 +41,3 @@ export const solvers = [
   validMathExpressions,
   waysToSum,
 ];
-

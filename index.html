@@ -1,65 +1,68 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="utf-8" />
-    <title>bitburner contract solver</title>
-    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
-    <link rel="stylesheet" href="./styles/global.css" />
-    <link rel="stylesheet" href="./styles/home.css" />
-  </head>
-  <body>
-    <div id="root">
-      <h1 id="page-title"><em>bitburner</em> contract solver</h1>
-      <noscript class="error-container">JavaScript is required to use this solver.</noscript>
-      <div id="contract-input">
-        <label>
-          <input type="text" autofocus placeholder="Copy contract content here..."/>
-        </label>
+
+<head>
+  <meta charset="utf-8" />
+  <title>bitburner contract solver</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <link rel="stylesheet" href="./styles/global.css" />
+  <link rel="stylesheet" href="./styles/home.css" />
+</head>
+
+<body>
+  <div id="root">
+    <h1 id="page-title"><em>bitburner</em> contract solver</h1>
+    <noscript class="error-container">JavaScript is required to use this solver.</noscript>
+    <div id="contract-input">
+      <label>
+        <input type="text" autofocus placeholder="Copy contract content here..." />
+      </label>
+    </div>
+    <div id="loader" class="loader" style="display: none;"></div>
+    <div id="solution-container" style="display: none;">
+      <h3 id="contract-name"></h3>
+      <div id="error" class="error-container">
+        <h2>Error</h2>
+        <p><span id="error-message"></span>
+        <p id="error-info"></p>
       </div>
-      <div id="loader" class="loader" style="display: none;"></div>
-      <div id="solution-container" style="display: none;">
-        <h3 id="contract-name"></h3>
-        <div id="error" class="error-container">
-          <h2>Error</h2>
-          <p><span id="error-message"></span>
-          <p id="error-info"></p>
-        </div>
-        <div id="solution-value-container">
-          <h3>Result</h3>
-          <pre id="solution-value"></pre>
-          <p id="copy-message"></p>
-          <h3>Related files</h3>
-          <ul>
-            <li>Algorithm file: <a id="algorithm-file"></a></li>
-            <li>Test file: <a id="test-file"></a></li>
-          </ul>
-        </div>
-      </div>
-      <div id="help" class="section">
-        <h2>Help</h2>
-        <p>
-          Copy the entire content of the contract in the input at the top of the page.<br />
-        </p>
-        <p>
-          Then the solver will:
-          <ul>
-            <li>automatically use the correct solver</li>
-            <li>display the solution and additional information</li>
-            <li>[optional] copy the solution to your clipboard if <a href="?autoAddToClipboard">autoAddToClipboard is provided</a> </li>
-          </ul>
-        </p>
-      </div>
-      <div id="links" class="section">
-        <h2>Links</h2>
+      <div id="solution-value-container">
+        <h3>Result</h3>
+        <pre id="solution-value"></pre>
+        <p id="copy-message"></p>
+        <h3>Related files</h3>
         <ul>
-          <li><a href="./tests.html">Tests</a></li>
-          <li><a href="./algorithms.html">Algorithms</a></li>
-          <li>Game's respository: <a href="https://github.com/danielyxie/bitburner/">bitburner</a></li>
-          <li>GitHub profile: <a href="https://github.com/Jerska">@jerska</a></li>
-          <li>GitHub repository: <a href="https://github.com/Jerska/bitburner">jerska/bitburner</a></li>
+          <li>Solver file: <a id="file"></a></li>
         </ul>
       </div>
     </div>
-    <script type="module" src="./js/home.js"></script>
-  </body>
+    <div id="help" class="section">
+      <h2>Help</h2>
+      <p>
+        Copy the entire content of the contract in the input at the top of the page.<br />
+      </p>
+      <p>
+        Then the solver will:
+      <ul>
+        <li>automatically use the correct solver</li>
+        <li>display the solution and additional information</li>
+        <li>[optional] copy the solution to your clipboard if <a href="?autoAddToClipboard">autoAddToClipboard is
+            provided</a> </li>
+      </ul>
+      </p>
+    </div>
+    <div id="links" class="section">
+      <h2>Links</h2>
+      <ul>
+        <li><a href="./tests.html">Tests</a></li>
+        <li><a href="./algorithms.html">Algorithms</a></li>
+        <li>Game's respository: <a href="https://github.com/danielyxie/bitburner/">bitburner</a></li>
+        <li>GitHub profile: <a href="https://github.com/Jerska">@jerska</a></li>
+        <li>GitHub repository: <a href="https://github.com/Jerska/bitburner">jerska/bitburner</a></li>
+      </ul>
+    </div>
+  </div>
+  <script type="module" src="./js/home.js"></script>
+</body>
+
 </html>

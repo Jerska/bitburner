@@ -1,10 +1,10 @@
 import { getMaxGain } from './stockTrader4.js';
 
-export const name = 'Algorithmic Stock Trader III';
-export const slug = 'stockTrader3';
+export const name = 'Algorithmic Stock Trader I';
+export const slug = 'stockTrader1';
 
 export function solve(input) {
-  return getMaxGain(input, 2);
+  return getMaxGain(input, 1);
 }
 
 export function textSolve(lines) {
@@ -13,3 +13,7 @@ export function textSolve(lines) {
   const res = solve(parsed);
   return res;
 }
+
+export const tests = [
+  // See stockTrader4.js
+];

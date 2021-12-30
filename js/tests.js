@@ -1,24 +1,26 @@
 import { wait } from './utils.js';
-import { tests } from '../tests/index.js';
+import { solvers, getSolverFilename, getSolverPath } from '../scripts/solvers/index.js';
 
 const $output = document.querySelector('#output');
 const $loader = document.querySelector('#loader');
 const $files = document.querySelector('#files');
 
 function showFiles() {
-  tests.sort((a, b) => b.name < a.name).forEach(({ slug, name }) => {
-    const $li = document.createElement('li');
-    $li.innerText = `${name}: `;
-    const $a = document.createElement('a');
-    $a.href = `solvers/${slug}.js`;
-    $a.innerText = `${slug}.js`;
-    $li.appendChild($a);
-    $files.appendChild($li);
-  });
+  solvers
+    .sort((a, b) => b.name < a.name)
+    .forEach(({ slug, name }) => {
+      const $li = document.createElement('li');
+      $li.innerText = `${name}: `;
+      const $a = document.createElement('a');
+      $a.href = getSolverPath(slug);
+      $a.innerText = getSolverFilename(slug);
+      $li.appendChild($a);
+      $files.appendChild($li);
+    });
 }
 
 function logger(type, ...args) {
-  args = args.map(e => {
+  args = args.map((e) => {
     if (typeof e === 'string') return e;
     if (e instanceof Error) return e;
     return JSON.stringify(e);
@@ -47,22 +49,22 @@ async function runTests() {
 
   log('Running test suite');
 
-  for (const { name, cases, solve } of tests) {
-    log(`* Testing: ${name}`)
+  for (const { name, tests, solve } of solvers) {
+    log(`* Testing: ${name}`);
     await wait(1);
 
     let cases_passed = 0;
-    const cases_total = cases.length;
+    const cases_total = tests.length;
 
     let id = 0;
-    for (const { name, input, expected } of cases) {
+    for (const { name, input, expected } of tests) {
       const displayName = `${name ?? ++id}`;
       let result;
 
       try {
         result = solve(input);
       } catch (e) {
-        logError(`  ${displayName}`)
+        logError(`  ${displayName}`);
         logError(e);
         continue;
       }
@@ -72,7 +74,7 @@ async function runTests() {
       } else if (Array.isArray(result) && JSON.stringify(result) === JSON.stringify(expected)) {
         cases_passed += 1;
       } else {
-        logError(`  ${displayName}`)
+        logError(`  ${displayName}`);
         logError('  Error');
         logError('  - input:    ', input);
         logError('  - result:   ', result);

@@ -1,5 +1,5 @@
 import { escapeHTML, wait } from './utils.js';
-import { solvers } from '../solvers/index.js';
+import { solvers, getSolverPath, getSolverFilename } from '../scripts/solvers/index.js';
 
 const $contractInput = document.querySelector('#contract-input input');
 const $loader = document.querySelector('#loader');
@@ -11,8 +11,7 @@ const $errorInfo = document.querySelector('#error-info');
 const $solutionValueContainer = document.querySelector('#solution-value-container');
 const $solutionValue = document.querySelector('#solution-value');
 const $copyMessage = document.querySelector('#copy-message');
-const $algorithmFile = document.querySelector('#algorithm-file');
-const $testFile = document.querySelector('#test-file');
+const $file = document.querySelector('#file');
 
 function shouldAutoAddToClipboard() {
   const params = new URLSearchParams(window.location.search);
@@ -25,21 +24,23 @@ async function nextState(value) {
     state = { ...state, ...newState };
   };
 
-  const lines = value.trim().split('\n')
-    .map(l => l.replace(/ +$/, ''))
-    .filter(l => l !== '');
+  const lines = value
+    .trim()
+    .split('\n')
+    .map((l) => l.replace(/ +$/, ''))
+    .filter((l) => l !== '');
   pushState({ lines });
   if (lines.length < 1) {
     pushState({
       error: 'Invalid input',
-      errorInfo: `You should copy the whole contract, from its title to its last line.`
+      errorInfo: `You should copy the whole contract, from its title to its last line.`,
     });
     return state;
   }
 
   const name = lines.shift().trim();
 
-  const solver = solvers.find(c => c.name === name);
+  const solver = solvers.find((c) => c.name === name);
   if (solver === undefined) {
     pushState({
       error: 'Unknown contract',
@@ -47,11 +48,13 @@ async function nextState(value) {
         ${escapeHTML(JSON.stringify(name))} is not a supported contract.<br />
         Supported contracts:
         <ul>
-          ${solvers.map(({ name }) => name).sort().map(name =>
-            `<li>${name}</li>`
-          ).join('')}
+          ${solvers
+            .map(({ name }) => name)
+            .sort()
+            .map((name) => `<li>${name}</li>`)
+            .join('')}
         </ul>
-      `
+      `,
     });
     return state;
   }
@@ -74,9 +77,11 @@ async function nextState(value) {
       await navigator.clipboard.writeText(result);
       pushState({ copyMessage: '^ Result copied to clipboard.' });
     } catch (err) {
-      pushState({ copyMessage: '^ Copying to clipboard failed. Check the console for more info.' });
+      pushState({
+        copyMessage: '^ Copying to clipboard failed. Check the console for more info.',
+      });
       console.error(err);
-    };
+    }
   }
 
   return state;
@@ -107,8 +112,8 @@ async function handleNewInput(value) {
   $copyMessage.innerText = state.copyMessage;
   $copyMessage.style.display = state.copyMessage ? 'block' : 'none';
 
-  $algorithmFile.innerText = $algorithmFile.href = `solvers/${state.slug}.js`;
-  $testFile.innerText = $testFile.href = `tests/${state.slug}.test.js`;
+  $file.innerText = getSolverFilename(state.slug);
+  $file.href = getSolverPath(state.slug);
 
   await wait(200);
 
@@ -119,12 +124,12 @@ async function handleNewInput(value) {
 
 // Bind input
 $contractInput.value = '';
-$contractInput.addEventListener('change', e => {
+$contractInput.addEventListener('change', (e) => {
   val = e.target.value;
-  e.target.value = "";
+  e.target.value = '';
   handleNewInput(val);
 });
-$contractInput.addEventListener('paste', e => {
+$contractInput.addEventListener('paste', (e) => {
   e.preventDefault();
   handleNewInput(e.clipboardData.getData('text/plain'));
 });
