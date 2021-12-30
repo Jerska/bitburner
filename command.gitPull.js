@@ -30,44 +30,56 @@ function fileUrl(sha, file) {
 }
 
 export async function main(ns) {
-  const { args, opts } = parseArgs(ns, { USAGE });
+  const { args, opts } = parseArgs(ns, { maxArgs: 1, USAGE });
+  let newSha = args[0] ?? null;
   const force = opts.f;
 
-  if (args.length > 1) {
-    ns.tprint('Too');
-  }
+  if (!newSha) {
+    // Fetch GitHub's API
+    const success = await ns.wget(API_TARGET, TMP_BRANCH_FILE);
+    if (!success) {
+      ns.tprint(`Failed to contact GitHub's API: ${API_TARGET}`);
+      return;
+    }
 
-  // Fetch GitHub's API
-  const success = await ns.wget(API_TARGET, TMP_BRANCH_FILE);
-  if (!success) {
-    ns.tprint(`Failed to contact GitHub's API: ${API_TARGET}`);
-    return;
-  }
+    // Read GitHub's data
+    const branch = ns.read(TMP_BRANCH_FILE);
+    if (!branch) {
+      ns.tprint(`Empty response from GitHub's API: ${API_TARGET}`);
+      cleanup();
+      return;
+    }
 
-  // Read GitHub's data
-  const branch = ns.read(TMP_BRANCH_FILE);
-  if (!branch) {
-    ns.tprint(`Empty response from GitHub's API: ${API_TARGET}`);
-    cleanup();
-    return;
-  }
-
-  // Get sha
-  let newSha;
-  try {
-    ({ newSha } = JSON.parse(branch));
-  } catch (err) {
-    ns.tprint(`Couldn't parse response from GitHub's API: ${API_TARGET}`);
-    ns.tprint(`Response:\n${branch}`);
-    ns.tprint(`Error: ${err.message}`);
-    cleanup();
-    return;
+    // Get sha
+    let branchData;
+    try {
+      branchData = JSON.parse(branch);
+      newSha = branchData.sha;
+    } catch (err) {
+      ns.tprint(`Couldn't parse response from GitHub's API: ${API_TARGET}`);
+      ns.tprint(`Response:\n${branch}`);
+      ns.tprint(`Error: ${err.message}`);
+      cleanup();
+      return;
+    }
+    if (!newSha) {
+      ns.tprint(`Couldn't retrieve sha from GitHub`);
+      ns.tprint(`GitHub's API response:\n${JSON.stringify(branchData, null, 2)}`);
+      return;
+    }
   }
 
   // Get current sha
   const currentSha = readData(ns, 'version');
   if (currentSha === NO_DATA) {
     ns.tprint('No current version found: first installation');
+  }
+
+  // Abort if shas are identical
+  if (!force && currentSha === newSha) {
+    ns.tprint(`Sha ${newSha} is the same as currently installed, aborting.`);
+    ns.tprint('To force installation, pass `-f`.');
+    return;
   }
 
   // Download files
@@ -80,7 +92,7 @@ export async function main(ns) {
   }
 
   // Update version data
-  upsertData(ns, 'version', newSha);
+  await upsertData(ns, 'version', newSha);
 
   // Print summary
   if (failed.length > 0) {

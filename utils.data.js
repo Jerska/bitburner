@@ -54,7 +54,7 @@ export async function upsertData(ns, type, data) {
 
   // Pop from port if it had data before
   if (hadData) {
-    ns.read(port);
+    ns.readPort(port);
   }
 
   // Persist to disk
