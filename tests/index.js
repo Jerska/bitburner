@@ -1,4 +1,5 @@
 import * as arrayJump from './arrayJump.test.js';
+import * as ipAddresses from './ipAddresses.test.js';
 import * as largestPrime from './largestPrime.test.js';
 import * as mergeIntervals from './mergeIntervals.test.js';
 import * as minPathSumTriangle from './minPathSumTriangle.test.js';
@@ -13,6 +14,7 @@ import * as waysToSum from './waysToSum.test.js';
 
 export const tests = [
   arrayJump,
+  ipAddresses,
   largestPrime,
   mergeIntervals,
   minPathSumTriangle,

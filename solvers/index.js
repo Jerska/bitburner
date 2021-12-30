@@ -1,4 +1,5 @@
 import * as arrayJump from './arrayJump.js';
+import * as ipAddresses from './ipAddresses.js';
 import * as largestPrime from './largestPrime.js';
 import * as mergeIntervals from './mergeIntervals.js';
 import * as minPathSumTriangle from './minPathSumTriangle.js';
@@ -16,6 +17,7 @@ import * as waysToSum from './waysToSum.js';
 
 export const solvers = [
   arrayJump,
+  ipAddresses,
   largestPrime,
   mergeIntervals,
   minPathSumTriangle,
