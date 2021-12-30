@@ -29,8 +29,9 @@ To setup your bitburner game with all the scripts and aliases of this repository
 
 ```sh
 alias gpl="run scripts/gitPull.js";
-wget https://raw.githubusercontent.com/jerska/bitburner/main/scripts/gitPull.js scripts/gitPull.js;
+wget https://raw.githubusercontent.com/jerska/bitburner/main/scripts/utils/args.js scripts/utils/args.js;
 wget https://raw.githubusercontent.com/jerska/bitburner/main/scripts/utils/ports.js scripts/utils/ports.js;
+wget https://raw.githubusercontent.com/jerska/bitburner/main/scripts/gitPull.js scripts/gitPull.js;
 ```
 
 Then:

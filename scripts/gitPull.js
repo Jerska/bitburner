@@ -1,6 +1,5 @@
 /**
  * File:  gitPull.js
- * Usage: gpl [-f]
  *
  * Description: gpl downloads all files from the repository.
  *   If the remote version matches the local version,
@@ -9,11 +8,16 @@
  * Options:
  *   -f     Force download, even if version matches existing
  */
-import { VERSION_PORT, NO_PORT_DATA, peekPort, upsertPort } from './utils/ports.js';
+const USAGE = 'gpl [-f] [<sha>]';
+
+import { peekPort, upsertPort } from './utils/ports.js';
+import { parseArgs } from './utils/args.js';
+
+import { VERSION_PORT, NO_PORT_DATA } from './utils/ports.js';
 
 const TMP_BRANCH_FILE = 'tmp/branch.txt';
 const API_TARGET = 'https://api.github.com/repos/jerska/bitburner/commits/main';
-const DL_BASE_URL = 'https://raw.githubusercontent.com/jerska/bitburner/main/';
+const DL_BASE_URL = 'https://raw.githubusercontent.com/jerska/bitburner/';
 
 const FILES = ['scripts/utils/ports.js', 'scripts/gitPull.js'];
 
@@ -21,8 +25,17 @@ function cleanup() {
   ns.rm(TMP_BRANCH_FILE);
 }
 
+function fileUrl(sha, file) {
+  return `${DL_BASE_URL}/${sha}/${file}`;
+}
+
 export async function main(ns) {
-  const force = ns.args.includes('-f');
+  const { args, opts } = parseArgs(ns);
+  const force = opts.f;
+
+  if (args.length > 1) {
+    ns.tprint('Too');
+  }
 
   // Fetch GitHub's API
   const success = await ns.wget(API_TARGET, TMP_BRANCH_FILE);
@@ -61,7 +74,7 @@ export async function main(ns) {
   ns.tprint(`Downloading version ${newSha}`);
   const failed = [];
   for (const file of FILES) {
-    const success = await ns.wget(`${DL_BASE_URL}/${file}`, file);
+    const success = await ns.wget(fileUrl(newSha, file), file);
     if (!success) failed.push(file);
     ns.tprint(`* ${file}: ${success ? 'OK' : 'FAILED'}`);
   }
