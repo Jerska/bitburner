@@ -17,6 +17,7 @@ import { createDaemonRunner } from './utils.daemon.js';
 
 const DAEMON_RUN_EVERY = 100;
 const DEFAULT_TYPES = ['player', 'servers'];
+const BASE_HOST = 'home';
 
 export async function main(ns) {
   ns.disableLog('ALL');
