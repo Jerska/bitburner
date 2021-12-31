@@ -34,7 +34,7 @@ function fileUrl(sha, file) {
   return `${DL_BASE_URL}/${sha}/${file}`;
 }
 
-async function downloadFile(ns, currentFiles, failedFiles, file) {
+async function downloadFile(ns, currentFiles, failedFiles, log, newSha, file) {
   let modifier = '+';
   let suffix = '';
   let currentBody = null;
@@ -128,7 +128,8 @@ export async function main(ns) {
     let failedFiles = [];
 
     // Download the list of files
-    const newFilesRaw = await downloadFile(ns, currentFiles, failedFiles, FILES_FILE);
+    const newFilesRaw = await downloadFile(ns, currentFiles, failedFiles, log, newSha, FILES_FILE);
+    g,
     if (!newFilesRaw) {
       logError(`Couldn't read ${FILES_FILE} to list the new files to install.`);
       return;
@@ -143,7 +144,7 @@ export async function main(ns) {
 
     // Download files
     for (const file of newFiles) {
-      await downloadFile(ns, currentFiles, failedFiles, FILES_FILE);
+      await downloadFile(ns, currentFiles, failedFiles, log, newSha, FILES_FILE);
     }
 
     // Cleanup old files
