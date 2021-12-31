@@ -7,14 +7,17 @@
  *
  * Options:
  *   -f     Force download, even if version matches existing
+ *   -d     Daemon mode: automatically pulls every minute
  */
-const USAGE = 'gpl [-f] [<sha>]';
+const USAGE = 'gpl [-d][-f] [<sha>]';
 
 import { readData, upsertData } from './utils.data.js';
 import { parseArgs } from './utils.args.js';
+import { createDaemonRunner } from './utils.daemon.js';
 
 import { NO_DATA } from './utils.data.js';
 
+const DAEMON_RUN_EVERY = 60 * 1000;
 const BASE_HOST = 'home';
 const FILES_FILE = 'json.files.txt';
 const TMP_BRANCH_FILE = 'tmp.json.branch.txt';
@@ -22,10 +25,6 @@ const API_TARGET = 'https://api.github.com/repos/jerska/bitburner/commits/main';
 const DL_BASE_URL = 'https://raw.githubusercontent.com/jerska/bitburner/';
 
 const PREFIXES = ['command.', 'json.', 'solver.', 'utils.'];
-
-function getCurrentFiles(ns) {
-  return ns.ls(BASE_HOST).filter((f) => PREFIXES.some((p) => f.startsWith(p)));
-}
 
 function cleanupBranchFile(ns) {
   ns.rm(TMP_BRANCH_FILE);
@@ -35,109 +34,133 @@ function fileUrl(sha, file) {
   return `${DL_BASE_URL}/${sha}/${file}`;
 }
 
+async function downloadFile(ns, currentFiles, failedFiles, file) {
+  let modifier = '+';
+  let suffix = '';
+  let currentBody = null;
+  let newBody = null;
+
+  const existed = currentFiles.includes(file);
+  if (existed) {
+    currentBody = ns.read(file);
+  }
+
+  const success = await ns.wget(fileUrl(newSha, FILES_FILE), FILES_FILE);
+  if (success) {
+    newBody = ns.read(file);
+    if (existed) {
+      modifier = newBody === currentBody ? '=' : '~';
+    }
+  } else {
+    modifier = '#';
+    suffix = ' [FAILED]';
+    failedFiles.push(file);
+  }
+
+  log(`${modifier} ${file}${suffix}`);
+  return newBody;
+}
+
 export async function main(ns) {
+  disableLog(ns, 'ls', 'rm', 'wget', 'read');
   const { args, opts } = parseArgs(ns, { maxArgs: 1, USAGE });
   let newSha = args[0] ?? null;
   const force = opts.f;
+  const isDaemon = opts.d;
 
-  const currentFiles = getCurrentFiles(ns);
+  if (newSha !== null && isDaemon) {
+    ns.tprint(`Can't use -d option with a specific sha`);
+  }
 
-  if (!newSha) {
-    // Fetch GitHub's API
-    const success = await ns.wget(API_TARGET, TMP_BRANCH_FILE);
-    if (!success) {
-      ns.tprint(`Failed to contact GitHub's API: ${API_TARGET}`);
-      return;
-    }
+  const cleanup = () => cleanupBranchFile(ns);
+  const runner = createDaemonRunner(ns, isDaemon, { cleanup, sleepDuration: DAEMON_RUN_EVERY });
+  await runner((log, logError) => {
+    const currentFiles = ns.ls(BASE_HOST).filter((f) => PREFIXES.some((p) => f.startsWith(p)));
 
-    // Read GitHub's data
-    const branch = ns.read(TMP_BRANCH_FILE);
-    if (!branch) {
-      ns.tprint(`Empty response from GitHub's API: ${API_TARGET}`);
-      cleanupBranchFile(ns);
-      return;
-    }
-
-    // Get sha
-    let branchData;
-    try {
-      branchData = JSON.parse(branch);
-      newSha = branchData.sha;
-    } catch (err) {
-      ns.tprint(`Couldn't parse response from GitHub's API: ${API_TARGET}`);
-      ns.tprint(`Response:\n${branch}`);
-      ns.tprint(`Error: ${err.message}`);
-      cleanupBranchFile(ns);
-      return;
-    }
     if (!newSha) {
-      ns.tprint(`Couldn't retrieve sha from GitHub`);
-      ns.tprint(`GitHub's API response:\n${JSON.stringify(branchData, null, 2)}`);
-      cleanupBranchFile(ns);
+      // Fetch GitHub's API
+      const success = await ns.wget(API_TARGET, TMP_BRANCH_FILE);
+      if (!success) {
+        logError(`Failed to contact GitHub's API: ${API_TARGET}`);
+        return;
+      }
+
+      // Read GitHub's data
+      const branch = ns.read(TMP_BRANCH_FILE);
+      if (!branch) {
+        logError(`Empty response from GitHub's API: ${API_TARGET}`);
+        return;
+      }
+
+      // Get sha
+      let branchData;
+      try {
+        branchData = JSON.parse(branch);
+        newSha = branchData.sha;
+      } catch (err) {
+        logError(`Couldn't parse response from GitHub's API: ${API_TARGET}`);
+        logError(`Response:\n${branch}`);
+        logError(`Error: ${err.message}`);
+        return;
+      }
+      if (!newSha) {
+        logError(`Couldn't retrieve sha from GitHub`);
+        logError(`GitHub's API response:\n${JSON.stringify(branchData, null, 2)}`);
+        return;
+      }
+    }
+
+    // Get current sha
+    const currentSha = readData(ns, 'version');
+    if (currentSha === NO_DATA) {
+      logError('No current version found: first installation');
+    }
+
+    // Abort if shas are identical
+    if (!force && currentSha === newSha) {
+      logError(`Sha ${newSha} is the same as currently installed, aborting.`);
+      logError('To force installation, pass `-f`.');
       return;
     }
-  }
 
-  // Get current sha
-  const currentSha = readData(ns, 'version');
-  if (currentSha === NO_DATA) {
-    ns.tprint('No current version found: first installation');
-  }
+    log(`Downloading version ${newSha}`);
+    let failedFiles = [];
 
-  // Abort if shas are identical
-  if (!force && currentSha === newSha) {
-    ns.tprint(`Sha ${newSha} is the same as currently installed, aborting.`);
-    ns.tprint('To force installation, pass `-f`.');
-    cleanupBranchFile(ns);
-    return;
-  }
-
-  // Download the list of files
-  ns.tprint(`Downloading version ${newSha}`);
-  const success = await ns.wget(fileUrl(newSha, FILES_FILE), FILES_FILE);
-  ns.tprint(`~ ${success ? '' : '[FAILED] '}${FILES_FILE}`);
-  const newFilesRaw = ns.read(FILES_FILE);
-  if (!newFilesRaw) {
-    ns.tprint(`Couldn't read ${FILES_FILE} to list the new files to install.`);
-    cleanupBranchFile(ns);
-    return;
-  }
-  let newFiles;
-  try {
-    newFiles = JSON.parse(newFilesRaw);
-  } catch (err) {
-    ns.tprint(`Couldn't parse ${FILES_FILE} to list new files to install.`);
-    cleanupBranchFile(ns);
-    return;
-  }
-
-  // Download files
-  const failed = [];
-  for (const file of newFiles) {
-    const success = await ns.wget(fileUrl(newSha, file), file);
-    if (!success) failed.push(file);
-    const existed = currentFiles.includes(file);
-    ns.tprint(`${existed ? '~' : '+'} ${success ? '' : '[FAILED] '}${file}`);
-  }
-  for (const file of currentFiles) {
-    if (newFiles.includes(file)) continue;
-    ns.tprint(`- ${file}`);
-    // ns.rm(file);
-  }
-
-  // Update version data
-  await upsertData(ns, 'version', newSha);
-
-  // Print summary
-  if (failed.length > 0) {
-    ns.tprint('Failed to pull some files:');
-    for (const file of failed) {
-      ns.tprint(`* Failed: ${file}`);
+    // Download the list of files
+    const newFilesRaw = await downloadFile(ns, currentFiles, failedFiles, FILES_FILE);
+    if (!newFilesRaw) {
+      logError(`Couldn't read ${FILES_FILE} to list the new files to install.`);
+      return;
     }
-  } else {
-    ns.tprint(`Successfully pulled version ${newSha}`);
-  }
+    let newFiles;
+    try {
+      newFiles = JSON.parse(newFilesRaw);
+    } catch (err) {
+      logError(`Couldn't parse ${FILES_FILE} to list new files to install.`);
+      return;
+    }
 
-  // Cleanup
-  cleanupBranchFile(ns);
+    // Download files
+    for (const file of newFiles) {
+      await downloadFile(ns, currentFiles, failedFiles, FILES_FILE);
+    }
+
+    // Cleanup old files
+    for (const file of currentFiles) {
+      if (newFiles.includes(file)) continue;
+      log(`- ${file}`);
+      ns.rm(file);
+    }
+
+    // Update version data
+    await upsertData(ns, 'version', newSha);
+
+    // Print summary
+    if (failedFiles.length > 0) {
+      const formattedFiles = failedFiles.map((f) => `* Failed: ${f}`);
+      logError(`Failed to pull some files:\n${formattedFiles.join('\n')}`);
+    } else {
+      log(`Successfully pulled version ${newSha}`);
+    }
+  });
 }

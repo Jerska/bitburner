@@ -37,6 +37,8 @@ alias gpl="run command.gitPull.js";
 wget https://raw.githubusercontent.com/jerska/bitburner/main/json.files.txt json.files.txt;
 wget https://raw.githubusercontent.com/jerska/bitburner/main/utils.args.js utils.args.js;
 wget https://raw.githubusercontent.com/jerska/bitburner/main/utils.data.js utils.data.js;
+wget https://raw.githubusercontent.com/jerska/bitburner/main/utils.daemon.js utils.daemon.js;
+wget https://raw.githubusercontent.com/jerska/bitburner/main/utils.log.js utils.log.js;
 wget https://raw.githubusercontent.com/jerska/bitburner/main/command.gitPull.js command.gitPull.js;
 ```
 

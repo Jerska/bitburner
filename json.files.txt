@@ -17,5 +17,7 @@
   "solver.validMathExpressions.js",
   "solver.waysToSum.js",
 	"utils.args.js",
-	"utils.data.js"
+  "utils.daemon.js",
+	"utils.data.js",
+  "utils.log.js"
 ]
