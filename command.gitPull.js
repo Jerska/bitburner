@@ -74,7 +74,7 @@ export async function main(ns) {
 
   const cleanup = () => cleanupBranchFile(ns);
   const runner = createDaemonRunner(ns, isDaemon, { cleanup, sleepDuration: DAEMON_RUN_EVERY });
-  await runner((log, logError) => {
+  await runner(async (log, logError) => {
     const currentFiles = ns.ls(BASE_HOST).filter((f) => PREFIXES.some((p) => f.startsWith(p)));
 
     if (!newSha) {
