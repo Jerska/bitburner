@@ -65,7 +65,7 @@ export async function main(ns) {
 
   const { args, opts } = parseArgs(ns, { maxArgs: 1, USAGE });
   let newSha = args[0] ?? null;
-  const force = opts.f;
+  const force = Boolean(opts.f);
   const isDaemon = opts.d;
 
   if (newSha !== null && isDaemon) {
