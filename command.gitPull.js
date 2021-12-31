@@ -95,7 +95,7 @@ export async function main(ns) {
   // Download the list of files
   ns.tprint(`Downloading version ${newSha}`);
   const success = await ns.wget(fileUrl(newSha, FILES_FILE), FILES_FILE);
-  ns.tprint(`* ${FILES_FILE}: ${success ? 'OK' : 'FAILED'}`);
+  ns.tprint(`~ ${success ? '' : '[FAILED] '} ${FILES_FILE}`);
   const newFilesRaw = ns.read(FILES_FILE);
   if (!newFilesRaw) {
     ns.tprint(`Couldn't read ${FILES_FILE} to list the new files to install.`);
@@ -116,7 +116,8 @@ export async function main(ns) {
   for (const file of newFiles) {
     const success = await ns.wget(fileUrl(newSha, file), file);
     if (!success) failed.push(file);
-    ns.tprint(`+ ${success ? '' : '[FAILED] '}${file}`);
+    const existed = currentFiles.includes(file);
+    ns.tprint(`${existed ? '~' : '+'} ${success ? '' : '[FAILED] '}${file}`);
   }
   for (const file of currentFiles) {
     if (newFiles.includes(file)) continue;
