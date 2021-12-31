@@ -20,5 +20,6 @@
 	"utils.args.js",
   "utils.daemon.js",
 	"utils.data.js",
-  "utils.log.js"
+  "utils.log.js",
+  "utils.servers.js"
 ]
