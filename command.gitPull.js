@@ -17,7 +17,7 @@ import { createDaemonRunner } from './utils.daemon.js';
 
 import { NO_DATA } from './utils.data.js';
 
-const DAEMON_RUN_EVERY = 5 * 60 * 1000;
+const DAEMON_RUN_EVERY = 10 * 60 * 1000;
 const BASE_HOST = 'home';
 const FILES_FILE = 'json.files.txt';
 const TMP_BRANCH_FILE = 'tmp.json.branch.txt';
