@@ -1,5 +1,6 @@
 [
 	"command.gitPull.js",
+  "command.info.js",
   "solver.arrayJump.js",
   "solver.ipAddresses.js",
   "solver.largestPrime.js",
