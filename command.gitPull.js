@@ -95,7 +95,7 @@ export async function main(ns) {
   // Download the list of files
   ns.tprint(`Downloading version ${newSha}`);
   const success = await ns.wget(fileUrl(newSha, FILES_FILE), FILES_FILE);
-  ns.tprint(`~ ${success ? '' : '[FAILED] '} ${FILES_FILE}`);
+  ns.tprint(`~ ${success ? '' : '[FAILED] '}${FILES_FILE}`);
   const newFilesRaw = ns.read(FILES_FILE);
   if (!newFilesRaw) {
     ns.tprint(`Couldn't read ${FILES_FILE} to list the new files to install.`);
