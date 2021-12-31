@@ -4,10 +4,10 @@ export function createDaemonRunner(ns, isDaemon, { cleanup = () => {}, sleepDura
   return async function daemonRun(fn) {
     const log = createLogger(ns, { isDaemon });
     const errorLog = createErrorLogger(ns, { isDaemon });
-    while (isDaemon) {
+    do {
       await fn(log, errorLog);
       await ns.asleep(sleepDuration);
       await cleanup();
-    }
+    } while (isDaemon);
   };
 }
