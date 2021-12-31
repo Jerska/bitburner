@@ -31,6 +31,7 @@ export async function main(ns) {
     if (types.includes('player')) {
       const player = ns.getPlayer();
       await upsertData(ns, 'player', player);
+      log('Refreshed player data');
     }
 
     if (types.includes('servers')) {
@@ -59,6 +60,7 @@ export async function main(ns) {
         }
       }
       await upsertData(ns, 'servers', servers);
+      log('Refreshed servers data');
     }
   });
 }
