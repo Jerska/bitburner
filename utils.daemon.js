@@ -6,7 +6,7 @@ export function createDaemonRunner(ns, isDaemon, { cleanup = () => {}, sleepDura
     const errorLog = createErrorLogger(ns, { isDaemon });
     do {
       await fn(log, errorLog);
-      await ns.asleep(sleepDuration);
+      if (isDaemon) await ns.asleep(sleepDuration);
       await cleanup();
     } while (isDaemon);
   };
