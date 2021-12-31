@@ -11,7 +11,7 @@ const USAGE = 'gpl [-d][-f] [<sha>]';
 
 import { readData, upsertData } from './utils.data.js';
 import { parseArgs } from './utils.args.js';
-import { createDaemonRunner } from './utils.daemon.js';
+import { createRunner } from './utils.runner.js';
 
 import { NO_DATA } from './utils.data.js';
 
@@ -73,7 +73,7 @@ export async function main(ns) {
   }
 
   const cleanup = () => cleanupBranchFile(ns);
-  const runner = createDaemonRunner(ns, isDaemon, { cleanup, sleepDuration: DAEMON_RUN_EVERY });
+  const runner = createRunner(ns, isDaemon, { cleanup, sleepDuration: DAEMON_RUN_EVERY });
   await runner(async (log, logError) => {
     const currentFiles = ns.ls(BASE_HOST).filter((f) => PREFIXES.some((p) => f.startsWith(p)));
 

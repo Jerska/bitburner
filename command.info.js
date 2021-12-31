@@ -13,7 +13,7 @@ const USAGE = 'info [-d] [<comma-separated-types>]';
 
 import { upsertData } from './utils.data.js';
 import { parseArgs } from './utils.args.js';
-import { createDaemonRunner } from './utils.daemon.js';
+import { createRunner } from './utils.runner.js';
 
 const DAEMON_RUN_EVERY = 500;
 const DEFAULT_TYPES = ['player', 'servers'];
@@ -26,7 +26,7 @@ export async function main(ns) {
   let types = args[0]?.split(',') ?? DEFAULT_TYPES;
   const isDaemon = opts.d;
 
-  const runner = createDaemonRunner(ns, isDaemon, { sleepDuration: DAEMON_RUN_EVERY });
+  const runner = createRunner(ns, isDaemon, { sleepDuration: DAEMON_RUN_EVERY });
   await runner(async (log, logError) => {
     if (types.includes('player')) {
       const player = ns.getPlayer();

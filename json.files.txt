@@ -18,8 +18,8 @@
   "solver.validMathExpressions.js",
   "solver.waysToSum.js",
 	"utils.args.js",
-  "utils.daemon.js",
 	"utils.data.js",
   "utils.log.js",
+  "utils.runner.js",
   "utils.servers.js"
 ]
