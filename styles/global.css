@@ -24,7 +24,8 @@ body {
 }
 
 pre {
-  white-space: pre;
+  white-space: pre-wrap;
+  word-wrap: anywhere;
 }
 
 h1 {
