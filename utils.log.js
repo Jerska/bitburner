@@ -1,4 +1,4 @@
-export function createLogger(ns, { isDaemon = false }) {
+export function createLogger(ns, { isDaemon = false } = {}) {
   return function log(msg) {
     if (isDaemon) {
       ns.print(msg);
@@ -8,7 +8,7 @@ export function createLogger(ns, { isDaemon = false }) {
   };
 }
 
-export function createErrorLogger(ns, { isDaemon = false }) {
+export function createErrorLogger(ns, { isDaemon = false } = {}) {
   return function logError(msg) {
     if (isDaemon) {
       ns.print(msg);
