@@ -117,7 +117,7 @@ export async function main(ns) {
     }
 
     // Abort if shas are identical
-    if (!force && currentSha === newSha) {
+    if (!force && !isDaemon && currentSha === newSha) {
       logError(`Sha ${newSha} is the same as currently installed, aborting.`);
       logError('To force installation, pass `-f`.');
       return;
