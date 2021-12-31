@@ -1,5 +1,5 @@
 [
-	"command.gitPull.js",
+  "command.gitPull.js",
   "command.info.js",
   "solver.arrayJump.js",
   "solver.ipAddresses.js",
@@ -17,8 +17,8 @@
   "solver.uniquePathsGrid2.js",
   "solver.validMathExpressions.js",
   "solver.waysToSum.js",
-	"utils.args.js",
-	"utils.data.js",
+  "utils.args.js",
+  "utils.data.js",
   "utils.log.js",
   "utils.runner.js",
   "utils.servers.js"
