@@ -4,7 +4,7 @@ export function createDaemonRunner(ns, isDaemon, { cleanup = () => {}, sleepDura
   return async function daemonRun(fn) {
     const log = createLogger(ns, { isDaemon });
     const errorLog = createErrorLogger(ns, { isDaemon });
-    ns.tprint('Running daemon');
+    if (isDaemon) ns.tprint('Running daemon');
     do {
       await fn(log, errorLog);
       await cleanup();
