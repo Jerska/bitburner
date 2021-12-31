@@ -45,7 +45,8 @@ async function downloadFile(ns, currentFiles, failedFiles, log, newSha, file) {
     currentBody = ns.read(file);
   }
 
-  const success = await ns.wget(fileUrl(newSha, FILES_FILE), FILES_FILE);
+  const url = fileUrl(newSha, file);
+  const success = await ns.wget(url, file);
   if (success) {
     newBody = ns.read(file);
     if (existed) {
