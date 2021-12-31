@@ -60,7 +60,7 @@ export async function main(ns) {
         }
       }
       await upsertData(ns, 'servers', servers);
-      log('Refreshed servers data');
+      log(`Refreshed servers data (${Object.keys(servers).length} servers)`);
     }
   });
 }
