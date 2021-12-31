@@ -23,7 +23,7 @@ export async function main(ns) {
   ns.disableLog('ALL');
 
   const { args, opts } = parseArgs(ns, { maxArgs: 1, USAGE });
-  let types = args[0] ?? DEFAULT_TYPES;
+  let types = args[0]?.split(',') ?? DEFAULT_TYPES;
   const isDaemon = opts.d;
 
   const runner = createDaemonRunner(ns, isDaemon, { sleepDuration: DAEMON_RUN_EVERY });
