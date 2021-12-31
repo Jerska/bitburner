@@ -32,7 +32,7 @@ export function readData(ns, type) {
 
   // Get data from port
   let portData = ns.peek(getPort(type));
-  if (portData !== NO_PORT_DATA) return portData.parsed ?? JSON.parse(portData);
+  if (portData !== NO_PORT_DATA) return JSON.parse(portData);
 
   // Fallback: get data from file
   const file = getFile(type);
@@ -49,7 +49,6 @@ export async function upsertData(ns, type, data) {
   const port = getPort(type);
   const hadData = ns.peek(port) !== NO_PORT_DATA;
   const body = JSON.stringify(data);
-  body.parsed = data;
 
   // Write to port
   await ns.writePort(port, body);
