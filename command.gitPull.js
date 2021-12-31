@@ -148,6 +148,7 @@ export async function main(ns) {
 
     // Cleanup old files
     for (const file of currentFiles) {
+      if (file === FILES_FILE) continue;
       if (newFiles.includes(file)) continue;
       log(`- ${file}`);
       ns.rm(file);
