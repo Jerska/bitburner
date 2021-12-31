@@ -1,6 +1,4 @@
 /**
- * File:  gitPull.js
- *
  * Description: gpl downloads all files from the repository.
  *   If the remote version matches the local version,
  *   the download is skipped unless -f is provided.
