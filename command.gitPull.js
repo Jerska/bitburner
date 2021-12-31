@@ -143,7 +143,7 @@ export async function main(ns) {
 
     // Download files
     for (const file of newFiles) {
-      await downloadFile(ns, currentFiles, failedFiles, log, newSha, FILES_FILE);
+      await downloadFile(ns, currentFiles, failedFiles, log, newSha, file);
     }
 
     // Cleanup old files
