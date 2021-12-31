@@ -129,7 +129,6 @@ export async function main(ns) {
 
     // Download the list of files
     const newFilesRaw = await downloadFile(ns, currentFiles, failedFiles, log, newSha, FILES_FILE);
-    g,
     if (!newFilesRaw) {
       logError(`Couldn't read ${FILES_FILE} to list the new files to install.`);
       return;
