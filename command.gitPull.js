@@ -15,13 +15,19 @@ import { parseArgs } from './utils.args.js';
 
 import { NO_DATA } from './utils.data.js';
 
-const TMP_BRANCH_FILE = 'tmp.branch.txt';
+const BASE_HOST = 'home';
+const FILES_FILE = 'json.files.txt';
+const TMP_BRANCH_FILE = 'tmp.json.branch.txt';
 const API_TARGET = 'https://api.github.com/repos/jerska/bitburner/commits/main';
 const DL_BASE_URL = 'https://raw.githubusercontent.com/jerska/bitburner/';
 
-const FILES = ['utils.args.js', 'utils.data.js', 'command.gitPull.js'];
+const PREFIXES = ['command.', 'json.', 'solver.', 'utils.'];
 
-function cleanup(ns) {
+function getCurrentFiles(ns) {
+  return ns.ls(BASE_HOST).filter((f) => PREFIXES.some((p) => f.startsWith(p)));
+}
+
+function cleanupBranchFile(ns) {
   ns.rm(TMP_BRANCH_FILE);
 }
 
@@ -33,6 +39,8 @@ export async function main(ns) {
   const { args, opts } = parseArgs(ns, { maxArgs: 1, USAGE });
   let newSha = args[0] ?? null;
   const force = opts.f;
+
+  const currentFiles = getCurrentFiles(ns);
 
   if (!newSha) {
     // Fetch GitHub's API
@@ -46,7 +54,7 @@ export async function main(ns) {
     const branch = ns.read(TMP_BRANCH_FILE);
     if (!branch) {
       ns.tprint(`Empty response from GitHub's API: ${API_TARGET}`);
-      cleanup(ns);
+      cleanupBranchFile(ns);
       return;
     }
 
@@ -59,13 +67,13 @@ export async function main(ns) {
       ns.tprint(`Couldn't parse response from GitHub's API: ${API_TARGET}`);
       ns.tprint(`Response:\n${branch}`);
       ns.tprint(`Error: ${err.message}`);
-      cleanup(ns);
+      cleanupBranchFile(ns);
       return;
     }
     if (!newSha) {
       ns.tprint(`Couldn't retrieve sha from GitHub`);
       ns.tprint(`GitHub's API response:\n${JSON.stringify(branchData, null, 2)}`);
-      cleanup(ns);
+      cleanupBranchFile(ns);
       return;
     }
   }
@@ -80,17 +88,40 @@ export async function main(ns) {
   if (!force && currentSha === newSha) {
     ns.tprint(`Sha ${newSha} is the same as currently installed, aborting.`);
     ns.tprint('To force installation, pass `-f`.');
-    cleanup(ns);
+    cleanupBranchFile(ns);
+    return;
+  }
+
+  // Download the list of files
+  ns.tprint(`Downloading version ${newSha}`);
+  const success = await ns.wget(fileUrl(newSha, FILES_FILE), FILES_FILE);
+  ns.tprint(`* ${FILES_FILE}: ${success ? 'OK' : 'FAILED'}`);
+  const newFilesRaw = ns.read(FILES_FILE);
+  if (!newFilesRaw) {
+    ns.tprint(`Couldn't read ${FILES_FILE} to list the new files to install.`);
+    cleanupBranchFile(ns);
+    return;
+  }
+  let newFiles;
+  try {
+    newFiles = JSON.parse(newFilesRaw);
+  } catch (err) {
+    ns.tprint(`Couldn't parse ${FILES_FILE} to list new files to install.`);
+    cleanupBranchFile(ns);
     return;
   }
 
   // Download files
-  ns.tprint(`Downloading version ${newSha}`);
   const failed = [];
-  for (const file of FILES) {
+  for (const file of newFiles) {
     const success = await ns.wget(fileUrl(newSha, file), file);
     if (!success) failed.push(file);
-    ns.tprint(`* ${file}: ${success ? 'OK' : 'FAILED'}`);
+    ns.tprint(`+ ${success ? '' : '[FAILED] '}${file}`);
+  }
+  for (const file of currentFiles) {
+    if (newFiles.includes(file)) continue;
+    ns.tprint(`- ${file}`);
+    // ns.rm(file);
   }
 
   // Update version data
@@ -100,12 +131,12 @@ export async function main(ns) {
   if (failed.length > 0) {
     ns.tprint('Failed to pull some files:');
     for (const file of failed) {
-      ns.tprint(`* ${file}`);
+      ns.tprint(`* Failed: ${file}`);
     }
   } else {
     ns.tprint(`Successfully pulled version ${newSha}`);
   }
 
   // Cleanup
-  cleanup(ns);
+  cleanupBranchFile(ns);
 }
