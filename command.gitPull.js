@@ -5,7 +5,7 @@
  *
  * Options:
  *   -f     Force download, even if version matches existing
- *   -d     Daemon mode: automatically pulls every minute
+ *   -d     Daemon mode: automatically pulls every 10 minutes
  */
 const USAGE = 'gpl [-d][-f] [<sha>]';
 
