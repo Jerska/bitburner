@@ -1,4 +1,4 @@
-import { createLogger, createErrorLogger, disableLog } from './utils.log.js';
+import { createLogger, createErrorLogger } from './utils.log.js';
 
 export function createDaemonRunner(ns, isDaemon, { cleanup = () => {}, sleepDuration = 1000 }) {
   disableLog(ns, 'asleep');
