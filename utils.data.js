@@ -32,7 +32,7 @@ export function readData(ns, type) {
 
   // Get data from port
   let portData = ns.peek(getPort(type));
-  if (portData !== NO_PORT_DATA) return portData;
+  if (portData !== NO_PORT_DATA) return portData.parsed ?? JSON.parse(portData);
 
   // Fallback: get data from file
   const file = getFile(type);
@@ -48,9 +48,11 @@ export async function upsertData(ns, type, data) {
 
   const port = getPort(type);
   const hadData = ns.peek(port) !== NO_PORT_DATA;
+  const body = JSON.stringify(data);
+  body.parsed = data;
 
   // Write to port
-  await ns.writePort(port, data);
+  await ns.writePort(port, body);
 
   // Pop from port if it had data before
   if (hadData) {
@@ -58,5 +60,5 @@ export async function upsertData(ns, type, data) {
   }
 
   // Persist to disk
-  await ns.write(getFile(type), data, 'w');
+  await ns.write(getFile(type), body, 'w');
 }
