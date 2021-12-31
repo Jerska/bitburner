@@ -7,7 +7,7 @@
  * Those data types can be provided as a comma-separated list to the command.
  *
  * Options:
- *   -d     Daemon mode: automatically pulls every 100ms
+ *   -d     Daemon mode: automatically pulls every 500ms
  */
 const USAGE = 'info [-d] [<comma-separated-types>]';
 
@@ -15,7 +15,7 @@ import { upsertData } from './utils.data.js';
 import { parseArgs } from './utils.args.js';
 import { createDaemonRunner } from './utils.daemon.js';
 
-const DAEMON_RUN_EVERY = 100;
+const DAEMON_RUN_EVERY = 500;
 const DEFAULT_TYPES = ['player', 'servers'];
 const BASE_HOST = 'home';
 
