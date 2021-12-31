@@ -1,11 +1,4 @@
-export function disableLog(ns, ...args) {
-  for (const arg of args) {
-    ns.disableLog(arg);
-  }
-}
-
 export function createLogger(ns, { isDaemon = false }) {
-  disableLog('print', 'tprint');
   return function log(msg) {
     if (isDaemon) {
       ns.print(msg);
@@ -16,7 +9,6 @@ export function createLogger(ns, { isDaemon = false }) {
 }
 
 export function createErrorLogger(ns, { isDaemon = false }) {
-  disableLog('print', 'toast', 'tprint');
   return function logError() {
     if (isDaemon) {
       ns.print(msg);

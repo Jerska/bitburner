@@ -62,7 +62,8 @@ async function downloadFile(ns, currentFiles, failedFiles, file) {
 }
 
 export async function main(ns) {
-  disableLog(ns, 'ls', 'rm', 'wget', 'read');
+  ns.disableLog('ALL');
+
   const { args, opts } = parseArgs(ns, { maxArgs: 1, USAGE });
   let newSha = args[0] ?? null;
   const force = opts.f;
