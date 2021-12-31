@@ -9,7 +9,7 @@ export function createLogger(ns, { isDaemon = false }) {
 }
 
 export function createErrorLogger(ns, { isDaemon = false }) {
-  return function logError() {
+  return function logError(msg) {
     if (isDaemon) {
       ns.print(msg);
       ns.toast(msg, 'error');
