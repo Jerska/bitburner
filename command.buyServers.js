@@ -66,7 +66,10 @@ export async function main(ns) {
       newRam *= 2;
     }
     const newCost = ns.getPurchasedServerCost(newRam);
-    if (newCost > moneyToSpend) return;
+    if (newCost > moneyToSpend) {
+      log('Not enough money to spend to buy a server');
+      return;
+    }
 
     ns.killall(cheapestHost);
     const couldDelete = ns.deleteServer(cheapestHost);
