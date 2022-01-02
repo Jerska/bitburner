@@ -35,6 +35,7 @@ To setup your bitburner game with all the scripts and aliases of this repository
 ```sh
 alias bd="run command.backdoor.js"
 alias bs="run command.buyServers.js"
+alias candidates="run command.candidates.js"
 alias co="run command.connect.js"
 alias crack="run command.crack.js";
 alias gpl="run command.gitPull.js";

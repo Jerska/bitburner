@@ -1,6 +1,7 @@
 [
   "command.backdoor.js",
   "command.buyServers.js",
+  "command.candidates.js",
   "command.connect.js",
   "command.crack.js",
   "command.gitPull.js",
