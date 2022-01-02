@@ -163,5 +163,8 @@ export async function main(ns) {
     } else {
       log(`Successfully pulled version ${newSha}`);
     }
+
+    // Reset newSha for next run
+    newSha = null;
   });
 }
