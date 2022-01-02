@@ -40,7 +40,7 @@ export async function main(ns) {
         return;
       }
     } else {
-      server = servers.find((s) => isBackdoorable(s, player));
+      server = getServers(ns).find((s) => isBackdoorable(s, player));
       if (!server) {
         log('No server backdoorable.');
         return;
