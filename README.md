@@ -35,6 +35,7 @@ To setup your bitburner game with all the scripts and aliases of this repository
 ```sh
 alias bs="run command.buyServers.js"
 alias gpl="run command.gitPull.js";
+alias hn="run command.hacknet.js"
 alias info="run command.info.js";
 wget https://raw.githubusercontent.com/jerska/bitburner/main/json.files.txt json.files.txt;
 wget https://raw.githubusercontent.com/jerska/bitburner/main/utils.args.js utils.args.js;
