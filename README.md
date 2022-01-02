@@ -33,7 +33,7 @@ Once pasted, the correct solver is taken and the solution displayed (and optiona
 To setup your bitburner game with all the scripts and aliases of this repository, run:
 
 ```sh
-alias buyServers="run command.buyServers.js"
+alias bs="run command.buyServers.js"
 alias gpl="run command.gitPull.js";
 alias info="run command.info.js";
 wget https://raw.githubusercontent.com/jerska/bitburner/main/json.files.txt json.files.txt;
