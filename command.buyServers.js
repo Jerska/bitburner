@@ -1,10 +1,10 @@
 /**
- * Description: buy is used to buy new machines.
+ * Description: bs is used to buy new machines.
  *
  * Options:
  *   -d     Daemon mode: automatically buys new machines.
  */
-const USAGE = 'buy [-d]';
+const USAGE = 'bs [-d]';
 
 import { parseArgs } from './utils.args.js';
 import { readData } from './utils.data.js';
