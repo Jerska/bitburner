@@ -16,7 +16,7 @@ export async function main(ns) {
   const { args } = parseArgs(ns, { maxArgs: 1, USAGE });
   const patterns = args[0] ? args[0].split(',') : [];
 
-  const runner = createRunner(ns, isDaemon, { cleanup, sleepDuration: DAEMON_RUN_EVERY });
+  const runner = createRunner(ns, false, { cleanup, sleepDuration: DAEMON_RUN_EVERY });
   await runner(async ({ log }) => {
     for (const host of getServers(ns, { withoutHome: true })) {
       let files = ns.ls(host);
