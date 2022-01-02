@@ -1,5 +1,5 @@
 [
-  "command.buy.js",
+  "command.buyServers.js",
   "command.gitPull.js",
   "command.info.js",
   "solver.arrayJump.js",
