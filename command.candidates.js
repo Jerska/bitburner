@@ -27,7 +27,7 @@ export async function main(ns) {
   const runner = createRunner(ns, isDaemon, { sleepDuration: DAEMON_RUN_EVERY });
   await runner(async ({ log, logError }) => {
     const player = readData(ns, 'player');
-    let candidates = getServers();
+    let candidates = getServers(ns);
     candidates = candidates.filter((server) => {
       if (!server.purchasedByPlayer) return false;
       if (server.requiredHackingSkill > player.hacking) return false;
