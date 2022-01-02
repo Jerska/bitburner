@@ -7,8 +7,8 @@
 const USAGE = 'crack [-d]';
 
 import { parseArgs } from './utils.args.js';
-import { getServersMap } from './utils.servers.js';
 import { createRunner } from './utils.runner.js';
+import { getServersMap } from './utils.servers.js';
 
 const DAEMON_RUN_EVERY = 60 * 1000;
 
