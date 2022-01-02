@@ -25,15 +25,26 @@ export async function main(ns) {
   const providedHost = args[0] ?? null;
 
   const runner = createRunner(ns, false);
-  await runner(async ({ log }) => {
+  await runner(async ({ log, logError }) => {
     const player = readData(ns, 'player');
-    let server = providedHost ? getServer(providedHost) : null;
-    if (!server) {
-      server = getServers(ns).find((s) => isBackdoorable(s, player));
-    }
-    if (!server) {
-      log('No backdoorable server left');
-      return;
+
+    let server;
+    if (providedHost) {
+      server = getServer(providedHost);
+      if (server.backdoorInstalled) {
+        logError('Server is already backdoored');
+        return;
+      }
+      if (!isBackdoorable(server, player)) {
+        logError('Server is not backdoorable.');
+        return;
+      }
+    } else {
+      server = servers.find((s) => isBackdoorable(s, player));
+      if (!server) {
+        log('No server backdoorable.');
+        return;
+      }
     }
     const cmds = [...getConnectPath(server).map((h) => `connect ${h}`), 'backdoor'];
     log('\n' + cmds.join('; '));
