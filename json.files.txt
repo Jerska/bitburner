@@ -1,5 +1,6 @@
 [
   "command.buyServers.js",
+  "command.crack.js",
   "command.gitPull.js",
   "command.hacknet.js",
   "command.info.js",

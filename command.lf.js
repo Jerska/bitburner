@@ -13,7 +13,7 @@ import { getHosts } from './utils.servers.js';
 export async function main(ns) {
   ns.disableLog('ALL');
 
-  const { args, opts } = parseArgs(ns, { maxArgs: 1, USAGE });
+  const { args, opts } = parseArgs(ns, { USAGE });
   const patterns = args;
   const rm = opts.rm;
 
