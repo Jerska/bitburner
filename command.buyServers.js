@@ -32,7 +32,7 @@ export async function main(ns) {
   const maxServers = ns.getPurchasedServerLimit();
 
   const runner = createRunner(ns, isDaemon, { sleepDuration: DAEMON_RUN_EVERY });
-  await runner(async (log, logError, stop) => {
+  await runner(async ({ log, logError, stop }) => {
     const { money } = readData(ns, 'player');
     const moneyToSpend = money * (1 / Math.log2(money + 1));
     const purchasedServers = ns.getPurchasedServers();
