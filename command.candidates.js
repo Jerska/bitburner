@@ -31,6 +31,7 @@ export async function main(ns) {
     candidates = candidates.filter((server) => {
       if (server.purchasedByPlayer) return false;
       if (server.requiredHackingSkill > player.hacking) return false;
+      if (server.moneyMax < 1) return false;
       return true;
     });
     candidates = candidates.sort((a, b) => {
