@@ -3,7 +3,7 @@
  *   to the next server backdoorable and a backdoor command.
  *   Optionally accepts a server name to backdoor a specific server.
  */
-const USAGE = 'co [<serverName>]';
+const USAGE = 'bd [<serverName>]';
 
 import { parseArgs } from './utils.args.js';
 import { readData } from './utils.data.js';
