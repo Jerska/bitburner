@@ -10,12 +10,15 @@ export function createLogger(ns, { isDaemon = false } = {}) {
 }
 
 export function createErrorLogger(ns, { isDaemon = false } = {}) {
-  return function logError(msg) {
+  return function logError(msg, { alert = false } = {}) {
     if (isDaemon) {
       ns.print(msg);
       ns.toast(msg, 'error');
     } else {
       ns.tprint(msg);
+    }
+    if (alert) {
+      ns.alert(msg);
     }
   };
 }
