@@ -26,6 +26,7 @@
   "solver.uniquePathsGrid2.js",
   "solver.validMathExpressions.js",
   "solver.waysToSum.js",
+  "solvers.js",
   "utils.args.js",
   "utils.data.js",
   "utils.log.js",
