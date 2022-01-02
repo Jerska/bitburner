@@ -46,7 +46,8 @@ export async function main(ns) {
     const addPotential = (idx, type, level, ram, cores, production) => {
       const cost = ns.hacknet[`get${type}UpgradeCost`](idx, 1);
       if (cost > moneyToSpend) return;
-      const increase = computeProduction(level, ram, cores) - production;
+      const mul = player.hacknet_node_money_mult;
+      const increase = computeProduction(level, ram, cores, mul) - production;
       const time = cost / increase;
       potentialOperations.push({ idx, type, increase, cost, time });
     };
