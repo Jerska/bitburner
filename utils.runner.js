@@ -16,6 +16,6 @@ export function createRunner(ns, isDaemon, { cleanup = () => {}, sleepDuration =
         log(`Sleeping ${sleepDuration} ms`);
         await ns.asleep(sleepDuration);
       }
-    } while (shouldStop);
+    } while (!shouldStop);
   };
 }
