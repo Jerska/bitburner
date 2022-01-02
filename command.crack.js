@@ -4,7 +4,7 @@
  * Options:
  *   -d     Daemon mode: automatically cracks new machines every minute.
  */
-const USAGE = 'hn [-d]';
+const USAGE = 'crack [-d]';
 
 import { parseArgs } from './utils.args.js';
 import { getServersMap } from './utils.servers.js';
