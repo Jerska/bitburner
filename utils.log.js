@@ -1,7 +1,8 @@
 export function createLogger(ns, { isDaemon = false } = {}) {
-  return function log(msg) {
+  return function log(msg, { toast = null } = {}) {
     if (isDaemon) {
       ns.print(msg);
+      if (toast !== null) ns.toast(msg, toast);
     } else {
       ns.tprint(msg);
     }
