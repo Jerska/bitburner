@@ -16,7 +16,8 @@ function buildNbArgsError(min, max, usage = null) {
 export function parseArgs(ns, { minArgs = 0, maxArgs = null, USAGE: usage = null }) {
   const opts = {};
   const args = [];
-  for (const arg of ns.args) {
+  for (const _arg of ns.args) {
+    const arg = String(_arg);
     if (arg.startsWith('--') && arg.length > 2) {
       opts[arg.slice(2)] = true;
       continue;
