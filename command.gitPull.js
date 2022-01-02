@@ -96,7 +96,7 @@ export async function main(ns) {
       let branchData;
       try {
         branchData = JSON.parse(branch);
-        newSha = branchData.sha;
+        newSha = branchData.sha.slice(0, 7);
       } catch (err) {
         logError(`Couldn't parse response from GitHub's API: ${API_TARGET}`);
         logError(`Response:\n${branch}`);
