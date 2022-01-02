@@ -13,7 +13,7 @@ import { readData, upsertData } from './utils.data.js';
 import { createRunner } from './utils.runner.js';
 import { getServers } from './utils.servers.js';
 
-const DEFAULT_CANDIDATES = 10;
+const DEFAULT_CANDIDATES = 40;
 const DAEMON_RUN_EVERY = 10 * 1000;
 
 export async function main(ns) {
