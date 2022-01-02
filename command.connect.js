@@ -1,11 +1,11 @@
 /**
- * Description: server reads information about a server.
+ * Description: co displays a command list to connect to a server.
  */
-const USAGE = 'server <serverName>';
+const USAGE = 'co <serverName>';
 
 import { parseArgs } from './utils.args.js';
 import { createRunner } from './utils.runner.js';
-import { getServer } from './utils.servers.js';
+import { getServer, getConnectPath } from './utils.servers.js';
 
 export async function main(ns) {
   ns.disableLog('ALL');
@@ -14,12 +14,9 @@ export async function main(ns) {
   const host = args[0];
 
   const runner = createRunner(ns, false);
-  await runner(async ({ log, logError }) => {
+  await runner(async ({ log }) => {
     const server = getServer(ns, host);
-    if (!server) {
-      logError(`Unknown host ${host}`);
-      return;
-    }
-    log(JSON.stringify(server, null, 2));
+    const cmds = getConnectPath(server).map((h) => `connect ${h}`);
+    log('\n' + cmds.join('; '));
   });
 }

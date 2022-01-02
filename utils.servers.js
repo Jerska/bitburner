@@ -19,3 +19,7 @@ export function getServersMap(ns, { withoutHome = false } = {}) {
   if (withoutHome) delete res[BASE_HOST];
   return res;
 }
+
+export function getConnectPath(server) {
+  return [...server.path.slice(1), server.hostname];
+}
