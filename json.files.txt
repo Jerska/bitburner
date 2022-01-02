@@ -8,6 +8,7 @@
   "command.hacknet.js",
   "command.info.js",
   "command.lf.js",
+  "command.player.js",
   "command.server.js",
   "command.solve.js",
   "solver.arrayJump.js",

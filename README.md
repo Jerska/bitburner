@@ -42,6 +42,7 @@ alias gpl="run command.gitPull.js";
 alias hn="run command.hacknet.js"
 alias info="run command.info.js";
 alias lf="run command.lf.js"
+alias player="run command.player.js"
 alias server="run command.server.js"
 alias solve="run command.solve.js"
 wget https://raw.githubusercontent.com/jerska/bitburner/main/json.files.txt json.files.txt;
