@@ -8,7 +8,7 @@ const USAGE = 'lf [<pattern>]';
 
 import { parseArgs } from './utils.args.js';
 import { createRunner } from './utils.runner.js';
-import { getServers } from './utils.servers.js';
+import { getHosts } from './utils.servers.js';
 
 export async function main(ns) {
   ns.disableLog('ALL');
@@ -18,7 +18,7 @@ export async function main(ns) {
 
   const runner = createRunner(ns, false);
   await runner(async ({ log }) => {
-    for (const host of getServers(ns, { withoutHome: true })) {
+    for (const host of getHosts(ns, { withoutHome: true })) {
       let files = ns.ls(host);
       if (patterns.length > 0) {
         files = files.filter((f) => patterns.some((p) => f.includes(p)));
