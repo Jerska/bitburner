@@ -3,7 +3,7 @@ import { readData } from './utils.data.js';
 const BASE_HOST = 'home';
 
 export function getServer(ns, server) {
-  return getServersMap(ns, { withoutHome })[server];
+  return getServersMap(ns)[server];
 }
 
 export function getHosts(ns, { withoutHome }) {
