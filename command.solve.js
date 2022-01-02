@@ -1,10 +1,10 @@
 /**
- * Description: contracts looks for contracts and solves them.
+ * Description: solve looks for contracts and solves them.
  *
  * Options:
  *   -d     Daemon mode: automatically pulls every 10 seconds
  */
-const USAGE = 'contracts [-d]';
+const USAGE = 'solve [-d]';
 
 import { parseArgs } from './utils.args.js';
 import { createRunner } from './utils.runner.js';

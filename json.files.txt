@@ -9,6 +9,7 @@
   "command.info.js",
   "command.lf.js",
   "command.server.js",
+  "command.solve.js",
   "solver.arrayJump.js",
   "solver.ipAddresses.js",
   "solver.largestPrime.js",
