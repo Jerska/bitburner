@@ -29,7 +29,7 @@ export async function main(ns) {
     const player = readData(ns, 'player');
     let candidates = getServers(ns);
     candidates = candidates.filter((server) => {
-      if (!server.purchasedByPlayer) return false;
+      if (server.purchasedByPlayer) return false;
       if (server.requiredHackingSkill > player.hacking) return false;
       return true;
     });
