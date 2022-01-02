@@ -30,7 +30,7 @@ export async function main(ns) {
 
     let server;
     if (providedHost) {
-      server = getServer(providedHost);
+      server = getServer(ns, providedHost);
       if (server.backdoorInstalled) {
         logError('Server is already backdoored');
         return;
