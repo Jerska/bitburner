@@ -9,11 +9,9 @@
  */
 const USAGE = 'gpl [-d][-f] [<sha>]';
 
-import { readData, upsertData } from './utils.data.js';
+import { readData, upsertData, NO_DATA } from './utils.data.js';
 import { parseArgs } from './utils.args.js';
 import { createRunner } from './utils.runner.js';
-
-import { NO_DATA } from './utils.data.js';
 
 const DAEMON_RUN_EVERY = 10 * 60 * 1000;
 const BASE_HOST = 'home';
