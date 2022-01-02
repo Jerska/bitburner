@@ -3,6 +3,7 @@
   "command.gitPull.js",
   "command.hacknet.js",
   "command.info.js",
+  "command.lf.js",
   "solver.arrayJump.js",
   "solver.ipAddresses.js",
   "solver.largestPrime.js",
