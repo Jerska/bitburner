@@ -21,7 +21,7 @@ function isBackdoorable(server, player) {
 export async function main(ns) {
   ns.disableLog('ALL');
 
-  const { args } = parseArgs(ns, { minArgs: 1, maxArgs: 1, USAGE });
+  const { args } = parseArgs(ns, { minArgs: 0, maxArgs: 1, USAGE });
   const providedHost = args[0] ?? null;
 
   const runner = createRunner(ns, false);
