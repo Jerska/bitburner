@@ -33,7 +33,7 @@ Once pasted, the correct solver is taken and the solution displayed (and optiona
 To setup your bitburner game with all the scripts and aliases of this repository, run:
 
 ```sh
-alias backdoor="run command.backdoor.js"
+alias bd="run command.backdoor.js"
 alias bs="run command.buyServers.js"
 alias co="run command.connect.js"
 alias crack="run command.crack.js";
