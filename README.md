@@ -45,6 +45,7 @@ alias lf="run command.lf.js"
 alias player="run command.player.js"
 alias server="run command.server.js"
 alias solve="run command.solve.js"
+alias spawn="run command.spawn.js"
 wget https://raw.githubusercontent.com/jerska/bitburner/main/json.files.txt json.files.txt;
 wget https://raw.githubusercontent.com/jerska/bitburner/main/utils.args.js utils.args.js;
 wget https://raw.githubusercontent.com/jerska/bitburner/main/utils.data.js utils.data.js;
