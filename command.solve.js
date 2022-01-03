@@ -47,11 +47,15 @@ export async function main(ns) {
     }
 
     let res = solver.solve(input); // Not catching errors to make sure it stops executing
+    if (typeof res === 'boolean') {
+      res = res ? 1 : 0;
+    }
     if (Array.isArray(res)) {
-      res =
-        res.length === 0
-          ? '""'
-          : res.map((e) => (Array.isArray(e) ? JSON.stringify(e) : `${e}`)).join(',');
+      if (res.length === 0) {
+        res = '""';
+      } else {
+        res = res.map((e) => (Array.isArray(e) ? JSON.stringify(e) : `${e}`)).join(',');
+      }
     }
 
     const reward = ns.codingcontract.attempt(res, contract, host, { returnReward: true });
