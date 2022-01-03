@@ -48,7 +48,10 @@ export async function main(ns) {
 
     let res = solver.solve(input); // Not catching errors to make sure it stops executing
     if (Array.isArray(res)) {
-      res = res.length === 0 ? '""' : res.join(',');
+      res =
+        res.length === 0
+          ? '""'
+          : res.map((e) => (Array.isArray(e) ? JSON.stringify(e) : `${e}`)).join(',');
     }
 
     const reward = ns.codingcontract.attempt(res, contract, host, { returnReward: true });
@@ -58,6 +61,6 @@ export async function main(ns) {
       return;
     }
 
-    log(`Solved ${name} contract\nGot ${reward}`, { toast: true });
+    log(`Solved ${name} contract\nGot ${reward}`, { toast: 'success' });
   });
 }
