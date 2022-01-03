@@ -42,8 +42,10 @@ export async function main(ns) {
         const { host, path } = todo.shift();
 
         // Get server info
+        const baseServer = ns.getServer(host);
         const server = {
-          ...ns.getServer(host),
+          ...baseServer,
+          ramAvailable: baseServer.maxRam - baseServer.ramUsed,
           hackTime: ns.getHackTime(host),
           growTime: ns.getGrowTime(host),
           weakenTime: ns.getWeakenTime(host),
