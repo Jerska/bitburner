@@ -61,6 +61,6 @@ export async function main(ns) {
       return;
     }
 
-    log(`Solved ${name} contract\nGot ${reward}`, { toast: 'success' });
+    log(`Solved ${name} contract - ${reward}`, { toast: 'success' });
   });
 }
