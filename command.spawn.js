@@ -230,6 +230,7 @@ class CandidateManager {
     log(`Scheduling ${host} with [weaken, grow, hack] = ${logValues}`);
     this.allocator.ceil(host);
 
+    /*
     // Weaken
     {
       for (const [runHost, server] of Object.entries(this.allocator.serversMap)) {
@@ -270,9 +271,12 @@ class CandidateManager {
     }
 
     setTimeout(() => {
-      this.running[host] = false;
-      this.allocator.reset(host);
+		*/
+    this.running[host] = false;
+    this.allocator.reset(host);
+    /*
     }, Math.ceil(server.growTime * 1.01));
+		*/
   }
 
   async wait() {
