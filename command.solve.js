@@ -9,7 +9,7 @@ const USAGE = 'solve [-d]';
 import { parseArgs } from './utils.args.js';
 import { createRunner } from './utils.runner.js';
 import { getServers } from './utils.servers.js';
-import { solvers } from './solvers.js';
+import { solvers } from './lib.solvers.js';
 
 const DAEMON_RUN_EVERY = 10 * 1000;
 const CONTRACT_SUFFIX = '.cct';
