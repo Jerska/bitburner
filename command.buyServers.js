@@ -17,7 +17,7 @@ const SLEEP_AFTER_BUY = 4000;
 
 async function purchase(ns, log, ram) {
   const newHost = ns.purchaseServer('bought', ram);
-  log(`Added ${newHost} (ram = ${ram})`);
+  log(`Added ${newHost} (ram = ${ram})`, { toast: 'info' });
   await ns.asleep(SLEEP_AFTER_BUY);
 }
 
