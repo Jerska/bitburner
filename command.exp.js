@@ -52,7 +52,7 @@ export async function main(ns) {
       if (!kill && Boolean(running)) continue;
       if (kill && !Boolean(running)) continue;
       if (kill) {
-        const success = ns.kill(p.filename, host, ...p.args);
+        const success = ns.kill(running.filename, host, ...running.args);
         if (success) {
           log(`* Killed exp script on ${host}`);
         } else {
