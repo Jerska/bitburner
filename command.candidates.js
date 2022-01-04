@@ -46,14 +46,23 @@ export async function main(ns) {
       const moneyAvailableStr = ns.nFormat(server.moneyAvailable, '0.00a');
       const moneyMaxStr = ns.nFormat(server.moneyMax, '0.00a');
       const moneyPercStr = ns.nFormat((server.moneyAvailable * 100) / server.moneyMax, '0.0');
-      log(`* ${server.hostname}`);
-      log(`  - money = ${moneyAvailableStr}/${moneyMaxStr} (${moneyPercStr}%)`);
-      log(`  - serverGrowth = ${server.serverGrowth}`);
-      const hackDiffStr = ns.nFormat(server.hackDifficulty, '0');
-      log(`  - minDifficulty = ${server.minDifficulty} (current = ${hackDiffStr})`);
+      const weakenTimeS = ns.nFormat(Math.round(server.weakenTimeS / 1000), '0.0');
+      const hackDiff = Math.round(server.hackDifficulty);
+      const hackDiffFromMin = Math.round(server.hackDifficulty - server.minDifficulty);
       const score = (server.moneyMax * server.serverGrowth) / server.minDifficulty;
       const scoreStr = ns.nFormat(score, '0a');
-      log(`  - score = ${scoreStr}`);
+      log(
+        '* ' +
+          [
+            server.hostname,
+            `${moneyAvailableStr}/${moneyMaxStr} (${moneyPercStr}%)`[
+              (`ws: ${weakenTimeS}s`,
+              `diff: ${hackDiff}(+${hackDiffFromMin})`,
+              `gr: ${server.serverGrowth}`,
+              `score: ${scoreStr}`)
+            ].join(', '),
+          ].join(' - ')
+      );
     }
 
     if (readonly) return;
