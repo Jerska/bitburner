@@ -49,6 +49,7 @@ class ServerAllocator {
     this.addGrowJob = this.addGrowJob.bind(this);
     this.addHackJob = this.addHackJob.bind(this);
     this.addWeakenJob = this.addWeakenJob.bind(this);
+    this.ceil = this.ceil.bind(this);
     this.reset = this.reset.bind(this);
   }
 
