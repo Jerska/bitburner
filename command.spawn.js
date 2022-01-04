@@ -143,7 +143,7 @@ class CandidateManager {
     this.run = this.run.bind(this);
   }
 
-  async run(ns, host) {
+  async run(ns, log, logError, host) {
     if (this.running[host]) return;
 
     this.running[host] = true;
@@ -308,7 +308,7 @@ export async function main(ns) {
     allocator.updateServers(serversMap);
 
     for (const host of candidates) {
-      await candidateManager.run(ns, host);
+      await candidateManager.run(ns, log, logError, host);
     }
   });
 
