@@ -5,7 +5,7 @@ const USAGE = 'ka';
 
 import { parseArgs } from './utils.args.js';
 import { createRunner } from './utils.runner.js';
-import { getServersMap } from './utils.servers.js';
+import { getHosts } from './utils.servers.js';
 
 const SCRIPTS = ['script.hack.js', 'script.grow.js', 'script.weaken.js'];
 
