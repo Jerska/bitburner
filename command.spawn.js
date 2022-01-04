@@ -110,14 +110,6 @@ class ServerAllocator {
     return true;
   }
 
-  removeHackJob(host) {
-    for (const s of this.servers) {
-      if (s.hackJobs[host]) {
-        s.hackJobs[host] -= 1;
-      }
-    }
-  }
-
   ceil(host) {
     for (const s of Object.values(this.serversMap)) {
       s.growJobs[host] = Math.ceil(s.growJobs[host]);
