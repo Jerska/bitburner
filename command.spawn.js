@@ -241,7 +241,7 @@ class CandidateManager {
       nbTotalWeakenThreads += nbWeakenThreads;
       nbTotalHackThreads += nbHackThreads;
       log(
-        `Hack threads: ${nbTotalHackThreads} (weaken: ${nbTotalWeakenThreads}, hackMoney: ${hackMoney}, hackChance: ${hackChance}, moneyHackedPerThread: ${moneyHackedPerThread})`
+        `Hack threads: ${nbTotalHackThreads} (weaken: ${nbTotalWeakenThreads}, targetHackThreads: ${targetHackThreads}, targetMoney: ${targetMoney}, hackChance: ${hackChance})`
       );
     }
 
