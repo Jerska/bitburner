@@ -90,7 +90,7 @@ class ServerAllocator {
 
   addGrowJob(host) {
     const server = this._findAvailableServer({ favorCores: true });
-    if (!server || server.threadsAvailable === 0) return false;
+    if (!server || server.threadsAvailable < 1) return false;
     server.threadsAvailable -= 1 / server.cpuCores;
     server.growJobs[host] += 1 / server.cpuCores;
     return true;
@@ -98,7 +98,7 @@ class ServerAllocator {
 
   addHackJob(host) {
     const server = this._findAvailableServer({ favorCores: false });
-    if (!server || server.threadsAvailable === 0) return false;
+    if (!server || server.threadsAvailable < 1) return false;
     server.threadsAvailable -= 1;
     server.hackJobs[host] += 1;
     return true;
@@ -106,7 +106,7 @@ class ServerAllocator {
 
   addWeakenJob(host) {
     const server = this._findAvailableServer({ favorCores: true });
-    if (!server || server.threadsAvailable === 0) return false;
+    if (!server || server.threadsAvailable < 1) return false;
     server.threadsAvailable -= 1 / server.cpuCores;
     server.weakenJobs[host] += 1 / server.cpuCores;
     return true;
@@ -186,6 +186,8 @@ class CandidateManager {
         if (!this.allocator.addWeakenJob(host)) break;
         nbWeakenThreads += 1;
       }
+      log(`Min weaken threads: ${nbWeakenThreads}`);
+      this.allocator.print(log, host);
       nbTotalWeakenThreads += nbWeakenThreads;
     }
 
@@ -209,6 +211,10 @@ class CandidateManager {
       }
       nbTotalWeakenThreads += nbWeakenThreads;
       nbTotalGrowThreads += nbGrowThreads;
+      log(
+        `Min grow threads: ${nbTotalGrowThreads} (weaken: ${nbTotalWeakenThreads}, targetGrowRatio: ${targetGrowRatio}, targetGrowThreads: ${targetGrowThreads})`
+      );
+      this.allocator.print(log, host);
     }
 
     // Hack
