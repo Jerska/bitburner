@@ -55,11 +55,12 @@ export async function main(ns) {
         '* ' +
           [
             server.hostname,
-            `${moneyAvailableStr}/${moneyMaxStr} (${moneyPercStr}%)`[
+            `${moneyAvailableStr}/${moneyMaxStr} (${moneyPercStr}%)`,
+            [
               (`ws: ${weakenTimeS}s`,
               `diff: ${hackDiff}(+${hackDiffFromMin})`,
               `gr: ${server.serverGrowth}`,
-              `score: ${scoreStr}`)
+              `score: ${scoreStr}`),
             ].join(', '),
           ].join(' - ')
       );
