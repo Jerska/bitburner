@@ -154,7 +154,7 @@ class CandidateManager {
       return;
     }
 
-    if (!this.allocator.hasAvailableThreads()) {
+    if (!this.allocator.hasThreadsAvailable()) {
       log(`No available machine to run a new thread for ${host}`);
       return;
     }
