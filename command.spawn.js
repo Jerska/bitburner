@@ -188,8 +188,6 @@ class CandidateManager {
         if (!this.allocator.addWeakenJob(host)) break;
         nbWeakenThreads += 1;
       }
-      log(`Min weaken threads: ${nbWeakenThreads}`);
-      this.allocator.print(log, host);
       nbTotalWeakenThreads += nbWeakenThreads;
     }
 
@@ -213,10 +211,6 @@ class CandidateManager {
       }
       nbTotalWeakenThreads += nbWeakenThreads;
       nbTotalGrowThreads += nbGrowThreads;
-      log(
-        `Min grow threads: ${nbTotalGrowThreads} (weaken: ${nbTotalWeakenThreads}, targetGrowRatio: ${targetGrowRatio}, targetGrowThreads: ${targetGrowThreads})`
-      );
-      this.allocator.print(log, host);
     }
 
     // Hack
@@ -240,9 +234,6 @@ class CandidateManager {
       }
       nbTotalWeakenThreads += nbWeakenThreads;
       nbTotalHackThreads += nbHackThreads;
-      log(
-        `Hack threads: ${nbTotalHackThreads} (weaken: ${nbTotalWeakenThreads}, targetHackThreads: ${targetHackThreads}, targetMoney: ${targetMoney}, hackChance: ${hackChance})`
-      );
     }
 
     const logValues = `[${nbTotalWeakenThreads}, ${nbTotalGrowThreads}, ${nbTotalHackThreads}]`;
@@ -250,7 +241,6 @@ class CandidateManager {
     this.allocator.print(log, host);
     this.allocator.ceil(host);
 
-    /*
     // Weaken
     {
       for (const [runHost, server] of Object.entries(this.allocator.serversMap)) {
@@ -291,12 +281,9 @@ class CandidateManager {
     }
 
     setTimeout(() => {
-		*/
-    this.running[host] = false;
-    this.allocator.reset(host);
-    /*
+      this.running[host] = false;
+      this.allocator.reset(host);
     }, Math.ceil(server.growTime * 1.01));
-		*/
   }
 
   async wait() {
