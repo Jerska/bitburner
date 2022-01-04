@@ -16,6 +16,7 @@ const MONEY_UP_TARGET = 1;
 const MONEY_LOW_TARGET = 0.2;
 const NB_HACKS_PER_GROW = 2;
 const SCRIPT_RAM = 1.8;
+const MAX_HACK_THREADS = 256;
 
 const BASE_HOST = 'home';
 const GROW_SCRIPT = 'script.grow.js';
@@ -273,9 +274,13 @@ class CandidateManager {
       // Second round
       setTimeout(() => {
         for (const [runHost, server] of Object.entries(this.allocator.serversMap)) {
-          const nbHackThreads = server.hackJobs[host] ?? 0;
+          let nbHackThreads = server.hackJobs[host] ?? 0;
           if (nbHackThreads === 0) continue;
-          ns.exec(HACK_SCRIPT, runHost, nbHackThreads, host);
+          while (nbHackThreads > 0) {
+            const nbThreads = Math.min(nbHackThreads, MAX_HACK_THREADS);
+            ns.exec(HACK_SCRIPT, runHost, nbThreads, host);
+            nbHackThreads -= nbThreads;
+          }
         }
       }, Math.ceil(hackTime * 1.1));
     }
