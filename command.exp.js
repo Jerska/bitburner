@@ -48,7 +48,7 @@ export async function main(ns) {
       if (isRunning) continue;
 
       // Run script
-      const ram = Math.min(server.ramAvailble, server.maxRam * ratio);
+      const ram = Math.min(server.ramAvailable, server.maxRam * ratio);
       const nbThreads = Math.floor(ram / EXP_SCRIPT_RAM);
       // ns.exec(EXP_SCRIPT, host, nbThreads, targetHost, `exp-${++i}`);
       log(`Running exp script on ${host} with ${nbThreads}.`);
