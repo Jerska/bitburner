@@ -79,7 +79,7 @@ class ServerAllocator {
       server.cpuCores = s.cpuCores;
       server.maxRam = s.maxRam;
       server.ramAvailable = s.ramAvailable;
-      server.threadsAvailable ??= Math.floor(s.ramAvailable / SCRIPT_RAM);
+      server.threadsAvailable = Math.floor(s.ramAvailable / SCRIPT_RAM);
     }
 
     // Sorted lists
