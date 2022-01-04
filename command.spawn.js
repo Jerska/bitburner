@@ -155,10 +155,11 @@ class CandidateManager {
     this.run = this.run.bind(this);
   }
 
-  async run(ns, log, logError, host) {
+  run(ns, log, logError, host) {
     if (this.running[host]) return;
-
     this.running[host] = true;
+
+    this.allocator.reset(host);
 
     const server = this.serversMap[host];
     if (!server) {
@@ -170,8 +171,6 @@ class CandidateManager {
       log(`No available machine to run a new thread for ${host}`);
       return;
     }
-
-    await setupScripts(ns, this.serversMap);
 
     let nbTotalGrowThreads = 0;
     let nbTotalHackThreads = 0;
@@ -319,9 +318,10 @@ export async function main(ns) {
 
     serversMap = getServersMap(ns, { withoutHome: true });
     allocator.updateServers(serversMap);
+    await setupScripts(ns, serversMap);
 
     for (const host of candidates) {
-      await candidateManager.run(ns, log, logError, host);
+      candidateManager.run(ns, log, logError, host);
     }
   });
 
