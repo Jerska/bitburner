@@ -7,6 +7,7 @@
   "command.gitPull.js",
   "command.hacknet.js",
   "command.info.js",
+  "command.killall.js",
   "command.lf.js",
   "command.player.js",
   "command.server.js",
