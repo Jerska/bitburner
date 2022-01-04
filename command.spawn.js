@@ -196,7 +196,7 @@ class CandidateManager {
       let nbWeakenThreads = 0;
       let nbGrowThreads = 0;
       const targetMoney = server.moneyMax * MONEY_UP_TARGET;
-      const targetGrowRatio = targetMoney / (server.moneyAvailable + 1);
+      const targetGrowRatio = Math.max(targetMoney / (server.moneyAvailable + 1), 1);
       const targetGrowThreads = ns.growthAnalyze(host, targetGrowRatio);
       while (true) {
         const growSec = ns.growthAnalyzeSecurity(nbGrowThreads);
