@@ -17,6 +17,7 @@ const MONEY_LOW_TARGET = 0.2;
 const NB_HACKS_PER_GROW = 2;
 const SCRIPT_RAM = 1.8;
 const MAX_HACK_THREADS = 256;
+const HOME_KEEP_RAM = 128;
 
 const BASE_HOST = 'home';
 const GROW_SCRIPT = 'script.grow.js';
@@ -69,7 +70,6 @@ class ServerAllocator {
       if (!this.serversMap[s.hostname]) {
         this.serversMap[s.hostname] = {
           hostname: s.hostname,
-          threadsAvailable: Math.floor(s.ramAvailable / SCRIPT_RAM),
           growJobs: {},
           hackJobs: {},
           weakenJobs: {},
@@ -79,7 +79,11 @@ class ServerAllocator {
       server.cpuCores = s.cpuCores;
       server.maxRam = s.maxRam;
       server.ramAvailable = s.ramAvailable;
-      server.threadsAvailable = Math.floor(s.ramAvailable / SCRIPT_RAM);
+      if (server.hostname === BASE_HOST) {
+        server.ramAvailable = Math.max(0, server.ramAvailable - HOME_KEEP_RAM);
+      }
+
+      server.threadsAvailable = Math.floor(server.ramAvailable / SCRIPT_RAM);
     }
 
     // Sorted lists
@@ -310,7 +314,7 @@ export async function main(ns) {
   const { opts } = parseArgs(ns, { maxArgs: 0, USAGE });
   const isDaemon = opts.d;
 
-  let serversMap = getServersMap(ns, { withoutHome: true });
+  let serversMap = getServersMap(ns);
   await setupScripts(ns, serversMap, { force: true });
   const allocator = new ServerAllocator(serversMap);
   const candidateManager = new CandidateManager(allocator, serversMap);
@@ -324,7 +328,7 @@ export async function main(ns) {
     }
     log(`Spawning with ${candidates.length} candidates.`);
 
-    serversMap = getServersMap(ns, { withoutHome: true });
+    serversMap = getServersMap(ns);
     allocator.updateServers(serversMap);
     await setupScripts(ns, serversMap);
 
