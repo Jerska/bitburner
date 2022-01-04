@@ -303,7 +303,7 @@ class CandidateManager {
     setTimeout(() => {
       this.running[host] = false;
       this.allocator.reset(host);
-    }, Math.ceil(server.growTime * 1.01));
+    }, Math.ceil(server.weakenTime * 1.01));
   }
 
   async wait() {
