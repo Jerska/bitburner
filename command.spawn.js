@@ -22,8 +22,6 @@ const GROW_SCRIPT = 'script.grow.js';
 const HACK_SCRIPT = 'script.hack.js';
 const WEAKEN_SCRIPT = 'script.weaken.js';
 
-const TARGET_GROWTH_RATE = MONEY_UP_TARGET / MONEY_LOW_TARGET;
-
 async function wait(ms) {
   return await new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -85,8 +83,8 @@ class ServerAllocator {
   addGrowJob(host) {
     const server = this._findAvailableServer({ favorCores: true });
     if (!server || server.threadsAvailable === 0) return false;
-    server.threadsAvailable -= 1;
-    server.growJobs[host] += 1;
+    server.threadsAvailable -= 1 / server.cpuCores;
+    server.growJobs[host] += 1 / server.cpuCores;
     return true;
   }
 
@@ -101,8 +99,8 @@ class ServerAllocator {
   addWeakenJob(host) {
     const server = this._findAvailableServer({ favorCores: true });
     if (!server || server.threadsAvailable === 0) return false;
-    server.threadsAvailable -= 1;
-    server.weakenJobs[host] += 1;
+    server.threadsAvailable -= 1 / server.cpuCores;
+    server.weakenJobs[host] += 1 / server.cpuCores;
     return true;
   }
 
@@ -111,6 +109,14 @@ class ServerAllocator {
       if (s.hackJobs[host]) {
         s.hackJobs[host] -= 1;
       }
+    }
+  }
+
+  ceil(host) {
+    for (const s of Object.values(this.serversMap)) {
+      s.growJobs[host] = Math.ceil(s.growJobs[host]);
+      s.hackJobs[host] = Math.ceil(s.hackJobs[host]);
+      s.weakenJobs[host] = Math.ceil(s.weakenJobs[host]);
     }
   }
 
@@ -157,32 +163,72 @@ class CandidateManager {
 
     await setupScripts(this.serversMap);
 
+    let nbTotalGrowThreads = 0;
+    let nbTotalHackThreads = 0;
+    let nbTotalWeakenThreads = 0;
+
     {
-      const optimalGrowThreads = Math.ceil(ns.growthAnalyze(host, TARGET_GROWTH_RATE));
-      const moneyTarget = (MONEY_UP_TARGET - MONEY_LOW_TARGET) * server.moneyMax;
-      const moneyPerGrowThread = moneyTarget / optimalGrowThreads;
-      const moneyPerHackThread = ns.hackAnalyze(host);
-      const hackChance = ns.hackAnalyzeChance(host);
-      let nbGrowThreads = 1;
-      let nbHackThreads = 1;
-      let nbWeakenThreads = 1;
-      const growSec = () => ns.growthAnalyzeSecurity(nbGrowThreads);
-      const hackSec = () => ns.hackAnalyzeSecurity(nbHackThreads);
-      const weakenSec = () => ns.weakenAnalyze(nbWeakenThreads);
+      // Weaken to minimum
+      let nbWeakenThreads = 0;
+      const weakenMinimum = server.hackDifficulty - server.minDifficulty;
       while (true) {
-        if (growSec() + hackSec() > weakenSec()) {
-          if (!allocator.addWeakenJob(host)) break;
+        const weakenSec = ns.weakenAnalyze(nbWeakenThreads);
+        if (weakenSec >= weakenMinimum) break;
+        if (!this.allocator.addWeakenJob(host)) break;
+        nbWeakenThreads += 1;
+      }
+      nbTotalWeakenThreads += nbWeakenThreads;
+    }
+
+    // Grow to max target
+    {
+      let nbWeakenThreads = 0;
+      let nbGrowThreads = 0;
+      const targetMoney = server.moneyMax * MONEY_UP_TARGET;
+      const targetGrowRatio = targetMoney / (server.moneyAvailable + 1);
+      const targetGrowThreads = ns.growthAnalyze(host, targetGrowRatio);
+      while (true) {
+        const growSec = ns.growthAnalyzeSecurity(nbGrowThreads);
+        const weakenSec = ns.weakenAnalyze(nbWeakenThreads);
+        if (growSec > weakenSec) {
+          if (!this.allocator.addWeakenJob(host)) break;
           nbWeakenThreads += 1;
         }
-        if (moneyPerHackThread * nbHackThreads * hackChance > moneyPerGrowThread * nbGrowThreads) {
-          if (!allocator.addGrowJob(host)) break;
-          nbGrowThreads += 1;
-        }
-        if (moneyPerHackThread * nbHackThreads * NB_HACKS_PER_GROW > moneyTarget) break;
-        if (!allocator.addHackJob(host)) break;
-        nbHackThreads += NB_HACKS_PER_GROW;
+        if (nbGrowThreads === targetGrowThreads) break;
+        if (!this.allocator.addGrowJob(host)) break;
+        nbGrowThreads += 1;
       }
+      nbTotalWeakenThreads += nbWeakenThreads;
+      nbTotalGrowThreads += nbGrowThreads;
     }
+
+    // Hack
+    {
+      let nbWeakenThreads = 0;
+      let nbHackThreads = 0;
+      const lowTargetMoney = server.moneyMax * MONEY_LOW_TARGET;
+      const hackChance = ns.hackAnalyzeChance(host);
+      const moneyHackedPerThread = ns.hackAnalyze(host) * hackChance * NB_HACKS_PER_GROW;
+      let moneyToHack = server.moneyAvailable - lowTargetMoney;
+      while (true) {
+        const hackSec = ns.hackAnalyzeSecurity(nbHackThreads);
+        const weakenSec = ns.weakenAnalyze(nbWeakenThreads);
+        if (hackSec > weakenSec) {
+          if (!this.allocator.addWeakenJob(host)) break;
+          nbWeakenThreads += 1;
+        }
+        if (moneyToHack < moneyHackedPerThread) break;
+        if (!this.allocator.addHackJob(host)) break;
+        nbHackThreads += NB_HACKS_PER_GROW;
+        moneyToHack -= moneyHackedPerThread;
+      }
+      nbTotalWeakenThreads += nbWeakenThreads;
+      nbTotalHackThreads += nbHackThreads;
+    }
+
+    const logValues = `[${nbTotalWeakenThreads}, ${nbTotalGrowThreads}, ${nbTotalHackThreads}]`;
+    log(`Scheduling ${host} with [weaken, grow, hack] = ${logValues}`);
+    this.allocator.ceil(host);
 
     // Weaken
     {
