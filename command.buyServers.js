@@ -67,7 +67,9 @@ export async function main(ns) {
     }
     const newCost = ns.getPurchasedServerCost(newRam);
     if (newCost > moneyToSpend) {
-      log('Not enough money to spend to buy a server');
+      const minCostStr = ns.nFormat(newCost, '0.0a');
+      const moneyToSpendStr = ns.nFormat(moneyToSpend, '0.0a');
+      log(`Not enough money to spend to buy a server (${minCostStr} > ${moneyToSpendStr})`);
       return;
     }
 
