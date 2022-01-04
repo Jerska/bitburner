@@ -25,7 +25,7 @@ const WEAKEN_SCRIPT = 'script.weaken.js';
 async function wait(ms) {
   return await new Promise((resolve) => setTimeout(resolve, ms));
 }
-async function setupScripts(serversMap, { force = false } = {}) {
+async function setupScripts(ns, serversMap, { force = false } = {}) {
   for (const host of Object.keys(serversMap)) {
     if (force || !ns.fileExists(GROW_SCRIPT, host)) {
       await ns.scp(GROW_SCRIPT, BASE_HOST, host);
@@ -145,7 +145,7 @@ class CandidateManager {
     this.run = this.run.bind(this);
   }
 
-  async run(host) {
+  async run(ns, host) {
     if (this.running[host]) return;
 
     this.running[host] = true;
@@ -161,7 +161,7 @@ class CandidateManager {
       return;
     }
 
-    await setupScripts(this.serversMap);
+    await setupScripts(ns, this.serversMap);
 
     let nbTotalGrowThreads = 0;
     let nbTotalHackThreads = 0;
@@ -289,7 +289,7 @@ export async function main(ns) {
   const isDaemon = opts.d;
 
   const serversMap = getServersMap(ns, { withoutHome: true });
-  await setupScripts(serversMap, { force: true });
+  await setupScripts(ns, serversMap, { force: true });
   const allocator = new ServerAllocator(serversMap);
   const candidateManager = new CandidateManager(allocator, serversMap);
 
@@ -306,7 +306,7 @@ export async function main(ns) {
     candidateManager.updateServers(serversMap);
 
     for (const host of candidates) {
-      await candidateManager.run(host);
+      await candidateManager.run(ns, host);
     }
   });
 
