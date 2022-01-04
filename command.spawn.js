@@ -48,9 +48,8 @@ async function setupScripts(ns, serversMap, { force = false } = {}) {
 }
 
 class ServerAllocator {
-  constructor(serversMap) {
+  constructor() {
     this.serversMap = {};
-    this.updateServers(serversMap);
 
     // Bind methods
     this.hasThreadsAvailable = this.hasThreadsAvailable.bind(this);
@@ -156,14 +155,20 @@ class ServerAllocator {
 }
 
 class CandidateManager {
-  constructor(allocator, serversMap) {
+  constructor(allocator) {
     this.allocator = allocator;
-    this.serversMap = serversMap;
 
+    this.serversMap = {};
     this.running = {};
 
     // Bind
+    this.updateServers = this.updateServers.bind(this);
     this.run = this.run.bind(this);
+  }
+
+  updateServers(serversMap) {
+    this.serversMap = serversMap;
+    this.allocator.updateServers(serversMap);
   }
 
   run(ns, log, logError, host) {
@@ -319,10 +324,8 @@ export async function main(ns) {
   const { opts } = parseArgs(ns, { maxArgs: 0, USAGE });
   const isDaemon = opts.d;
 
-  let serversMap = getServersMap(ns);
-  await setupScripts(ns, serversMap, { force: true });
-  const allocator = new ServerAllocator(serversMap);
-  const candidateManager = new CandidateManager(allocator, serversMap);
+  const allocator = new ServerAllocator();
+  const candidateManager = new CandidateManager(allocator);
 
   const runner = createRunner(ns, isDaemon, { sleepDuration: DAEMON_RUN_EVERY });
   await runner(async ({ log, logError }) => {
@@ -333,8 +336,8 @@ export async function main(ns) {
     }
     log(`Spawning with ${candidates.length} candidates.`);
 
-    serversMap = getServersMap(ns);
-    allocator.updateServers(serversMap);
+    const serversMap = getServersMap(ns);
+    candidateManager.updateServers(serversMap);
     await setupScripts(ns, serversMap);
 
     for (const host of candidates) {
