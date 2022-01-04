@@ -205,7 +205,7 @@ class CandidateManager {
           if (!this.allocator.addWeakenJob(host)) break;
           nbWeakenThreads += 1;
         }
-        if (nbGrowThreads === targetGrowThreads) break;
+        if (nbGrowThreads >= targetGrowThreads) break;
         if (!this.allocator.addGrowJob(host)) break;
         nbGrowThreads += 1;
       }
