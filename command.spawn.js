@@ -263,7 +263,7 @@ class CandidateManager {
       for (const [runHost, server] of Object.entries(this.allocator.serversMap)) {
         const nbWeakenThreads = server.weakenJobs[host] ?? 0;
         if (nbWeakenThreads === 0) continue;
-        ns.exec(WEAKEN_SCRIPT, runHost, nbWeakenThreads, host, ++i);
+        ns.exec(WEAKEN_SCRIPT, runHost, nbWeakenThreads, host, `spawn-${++i}`);
       }
     }
 
@@ -272,7 +272,7 @@ class CandidateManager {
       for (const [runHost, server] of Object.entries(this.allocator.serversMap)) {
         const nbGrowThreads = server.growJobs[host] ?? 0;
         if (nbGrowThreads === 0) continue;
-        ns.exec(GROW_SCRIPT, runHost, nbGrowThreads, host, ++i);
+        ns.exec(GROW_SCRIPT, runHost, nbGrowThreads, host, `spawn-${++i}`);
       }
     }
 
@@ -286,7 +286,7 @@ class CandidateManager {
         if (nbHackThreads === 0) continue;
         while (nbHackThreads > 0) {
           const nbThreads = Math.min(nbHackThreads, MAX_HACK_THREADS);
-          ns.exec(HACK_SCRIPT, runHost, nbThreads, host, ++i);
+          ns.exec(HACK_SCRIPT, runHost, nbThreads, host, `spawn-${++i}`);
           nbHackThreads -= nbThreads;
         }
       }
@@ -298,7 +298,7 @@ class CandidateManager {
           if (nbHackThreads === 0) continue;
           while (nbHackThreads > 0) {
             const nbThreads = Math.min(nbHackThreads, MAX_HACK_THREADS);
-            ns.exec(HACK_SCRIPT, runHost, nbThreads, host, ++i);
+            ns.exec(HACK_SCRIPT, runHost, nbThreads, host, `spawn-${++i}`);
             nbHackThreads -= nbThreads;
           }
         }
