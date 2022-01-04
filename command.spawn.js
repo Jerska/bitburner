@@ -23,6 +23,8 @@ const GROW_SCRIPT = 'script.grow.js';
 const HACK_SCRIPT = 'script.hack.js';
 const WEAKEN_SCRIPT = 'script.weaken.js';
 
+let i = 0;
+
 async function wait(ms) {
   return await new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -247,7 +249,7 @@ class CandidateManager {
       for (const [runHost, server] of Object.entries(this.allocator.serversMap)) {
         const nbWeakenThreads = server.weakenJobs[host] ?? 0;
         if (nbWeakenThreads === 0) continue;
-        ns.exec(WEAKEN_SCRIPT, runHost, nbWeakenThreads, host);
+        ns.exec(WEAKEN_SCRIPT, runHost, nbWeakenThreads, host, ++i);
       }
     }
 
@@ -256,7 +258,7 @@ class CandidateManager {
       for (const [runHost, server] of Object.entries(this.allocator.serversMap)) {
         const nbGrowThreads = server.growJobs[host] ?? 0;
         if (nbGrowThreads === 0) continue;
-        ns.exec(GROW_SCRIPT, runHost, nbGrowThreads, host);
+        ns.exec(GROW_SCRIPT, runHost, nbGrowThreads, host, ++i);
       }
     }
 
@@ -270,7 +272,7 @@ class CandidateManager {
         if (nbHackThreads === 0) continue;
         while (nbHackThreads > 0) {
           const nbThreads = Math.min(nbHackThreads, MAX_HACK_THREADS);
-          ns.exec(HACK_SCRIPT, runHost, nbThreads, host);
+          ns.exec(HACK_SCRIPT, runHost, nbThreads, host, ++i);
           nbHackThreads -= nbThreads;
         }
       }
@@ -282,7 +284,7 @@ class CandidateManager {
           if (nbHackThreads === 0) continue;
           while (nbHackThreads > 0) {
             const nbThreads = Math.min(nbHackThreads, MAX_HACK_THREADS);
-            ns.exec(HACK_SCRIPT, runHost, nbThreads, host);
+            ns.exec(HACK_SCRIPT, runHost, nbThreads, host, ++i);
             nbHackThreads -= nbThreads;
           }
         }
