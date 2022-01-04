@@ -6,7 +6,7 @@ export function getServer(ns, server) {
   return getServersMap(ns)[server];
 }
 
-export function getHosts(ns, { withoutHome }) {
+export function getHosts(ns, { withoutHome = false } = {}) {
   return Object.keys(getServersMap(ns, { withoutHome }));
 }
 
