@@ -23,6 +23,7 @@ const BASE_HOST = 'home';
 const GROW_SCRIPT = 'script.grow.js';
 const HACK_SCRIPT = 'script.hack.js';
 const WEAKEN_SCRIPT = 'script.weaken.js';
+const UTILS_DATA = 'utils.data.js';
 
 let i = 0;
 
@@ -34,11 +35,14 @@ async function setupScripts(ns, serversMap, { force = false } = {}) {
     if (force || !ns.fileExists(GROW_SCRIPT, host)) {
       await ns.scp(GROW_SCRIPT, BASE_HOST, host);
     }
-    if (force || !ns.fileExists(HACK_SCRIPT, host)) {
-      await ns.scp(HACK_SCRIPT, BASE_HOST, host);
-    }
     if (force || !ns.fileExists(WEAKEN_SCRIPT, host)) {
       await ns.scp(WEAKEN_SCRIPT, BASE_HOST, host);
+    }
+    if (force || !ns.fileExists(UTILS_DATA, host)) {
+      await ns.scp(UTILS_DATA, BASE_HOST, host);
+    }
+    if (force || !ns.fileExists(HACK_SCRIPT, host)) {
+      await ns.scp(HACK_SCRIPT, BASE_HOST, host);
     }
   }
 }
