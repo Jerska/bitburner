@@ -48,7 +48,7 @@ export async function main(ns) {
       // Get current existing script
       const running = ns
         .ps(host)
-        .some((p) => p.filename === EXP_SCRIPT && String(p.args[1]).startsWith('exp-'));
+        .find((p) => p.filename === EXP_SCRIPT && String(p.args[1]).startsWith('exp-'));
       if (!kill && Boolean(running)) continue;
       if (kill && !Boolean(running)) continue;
       if (kill) {
