@@ -292,7 +292,7 @@ export async function main(ns) {
   const { opts } = parseArgs(ns, { maxArgs: 0, USAGE });
   const isDaemon = opts.d;
 
-  const serversMap = getServersMap(ns, { withoutHome: true });
+  let serversMap = getServersMap(ns, { withoutHome: true });
   await setupScripts(ns, serversMap, { force: true });
   const allocator = new ServerAllocator(serversMap);
   const candidateManager = new CandidateManager(allocator, serversMap);
