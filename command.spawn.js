@@ -239,6 +239,9 @@ class CandidateManager {
       }
       nbTotalWeakenThreads += nbWeakenThreads;
       nbTotalHackThreads += nbHackThreads;
+      log(
+        `Hack threads: ${nbTotalHackThreads} (weaken: ${nbTotalWeakenThreads}, moneyHackedPerThread: ${moneyHackedPerThread})`
+      );
     }
 
     const logValues = `[${nbTotalWeakenThreads}, ${nbTotalGrowThreads}, ${nbTotalHackThreads}]`;
