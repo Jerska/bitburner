@@ -249,7 +249,7 @@ class CandidateManager {
 
     const logValues = `[w: ${nbTotalWeakenThreads}, g: ${nbTotalGrowThreads}, h: ${nbTotalHackThreads}]`;
     const durationS = Math.round(server.weakenTime / 1000);
-    log(`Scheduling ${host} with ${logValues} (duration = ${durationS}ms)`);
+    log(`Scheduling ${host} with ${logValues} (duration = ${durationS}s)`);
     this.allocator.print(log, host);
     this.allocator.ceil(host);
 
