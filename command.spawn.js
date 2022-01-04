@@ -307,7 +307,7 @@ export async function main(ns) {
     log(`Spawning with ${candidates.length} candidates.`);
 
     serversMap = getServersMap(ns, { withoutHome: true });
-    candidateManager.updateServers(serversMap);
+    allocator.updateServers(serversMap);
 
     for (const host of candidates) {
       await candidateManager.run(ns, host);
