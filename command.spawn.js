@@ -222,10 +222,9 @@ class CandidateManager {
       let nbWeakenThreads = 0;
       let nbHackThreads = 0;
       const lowTargetMoney = server.moneyMax * MONEY_LOW_TARGET;
-      const hackMoney = ns.hackAnalyze(host);
       const hackChance = ns.hackAnalyzeChance(host);
-      const moneyHackedPerThread = hackMoney * hackChance * NB_HACKS_PER_GROW;
-      let moneyToHack = server.moneyAvailable - lowTargetMoney;
+      const targetMoney = server.moneyAvailable - lowTargetMoney;
+      const targetHackThreads = ns.hackAnalyzeThreads(host, targetMoney) / hackChance;
       while (true) {
         const hackSec = ns.hackAnalyzeSecurity(nbHackThreads);
         const weakenSec = ns.weakenAnalyze(nbWeakenThreads);
@@ -233,10 +232,9 @@ class CandidateManager {
           if (!this.allocator.addWeakenJob(host)) break;
           nbWeakenThreads += 1;
         }
-        if (moneyToHack < moneyHackedPerThread) break;
+        if (nbHackThreads >= targetHackThreads) break;
         if (!this.allocator.addHackJob(host)) break;
         nbHackThreads += NB_HACKS_PER_GROW;
-        moneyToHack -= moneyHackedPerThread;
       }
       nbTotalWeakenThreads += nbWeakenThreads;
       nbTotalHackThreads += nbHackThreads;
