@@ -4,13 +4,15 @@ export function createRunner(ns, isDaemon, { cleanup = () => {}, sleepDuration =
   return async function run(fn) {
     const log = createLogger(ns, { isDaemon });
     const logError = createErrorLogger(ns, { isDaemon });
+    let firstRun = true;
     let shouldStop = !isDaemon;
     const stop = () => {
       shouldStop = true;
     };
     if (isDaemon) ns.tprint('Running daemon');
     do {
-      await fn({ log, logError, stop });
+      await fn({ firstRun, log, logError, stop });
+      firstRun = false;
       await cleanup();
       if (isDaemon) {
         log(`Sleeping ${sleepDuration} ms`);

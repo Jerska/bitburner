@@ -4,6 +4,7 @@
   "command.candidates.js",
   "command.connect.js",
   "command.crack.js",
+  "command.exp.js",
   "command.gitPull.js",
   "command.hacknet.js",
   "command.info.js",

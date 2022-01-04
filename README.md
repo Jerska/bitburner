@@ -38,6 +38,7 @@ alias bs="run command.buyServers.js";
 alias candidates="run command.candidates.js";
 alias co="run command.connect.js";
 alias crack="run command.crack.js";
+alias exp="run command.exp.js";
 alias gpl="run command.gitPull.js";
 alias hn="run command.hacknet.js";
 alias info="run command.info.js";
