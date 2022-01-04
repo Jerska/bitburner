@@ -5,8 +5,9 @@
  *
  * Options:
  *   -d     Daemon mode: automatically buys next Hacknet upgrades every second.
+ *   -k     Kill mode: kills all running experience scripts.
  */
-const USAGE = 'weaken [-d] [<ratio>]';
+const USAGE = 'exp [-d][-k] [<ratio>]';
 
 import { parseArgs } from './utils.args.js';
 import { readData } from './utils.data.js';
@@ -26,9 +27,10 @@ export async function main(ns) {
   const { args, opts } = parseArgs(ns, { maxArgs: 1, USAGE });
   const ratio = parseFloat(args[0] || '0.1');
   const isDaemon = opts.d;
+  const kill = opts.k;
 
   const runner = createRunner(ns, isDaemon, { sleepDuration: DAEMON_RUN_EVERY });
-  await runner(async ({ firstRun, log, logError }) => {
+  await runner(async ({ firstRun, log, logError, stop }) => {
     // Find target server
     const candidates = readData(ns, 'candidates');
     if (!candidates || !candidates[0]) {
@@ -43,9 +45,21 @@ export async function main(ns) {
         await ns.scp(EXP_SCRIPT, BASE_HOST, host);
       }
 
-      // Do not replace currently existing script
-      const isRunning = ns.ps(host).some((p) => p.filename === EXP_SCRIPT);
-      if (isRunning) continue;
+      // Get current existing script
+      const running = ns
+        .ps(host)
+        .some((p) => p.filename === EXP_SCRIPT && p.args.some((arg) => arg.startsWith('exp-')));
+      if (Boolean(running)) {
+        if (kill) {
+          const success = ns.kill(p.filename, host, ...p.args);
+          if (success) {
+            log(`* Killed exp script on ${host}`);
+          } else {
+            logError(`* [Error] Could not kill exp script on ${host}`);
+          }
+        }
+        continue;
+      }
 
       // Run script
       const ram = Math.min(server.ramAvailable, server.maxRam * ratio);
