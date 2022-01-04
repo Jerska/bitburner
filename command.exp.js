@@ -37,7 +37,7 @@ export async function main(ns) {
     }
     const targetHost = candidates[0];
 
-    for (const [host, server] of getServersMap(ns)) {
+    for (const [host, server] of Object.entries(getServersMap(ns))) {
       // Make sure script exists
       if (firstRun || !ns.fileExists(host, EXP_SCRIPT)) {
         await ns.scp(EXP_SCRIPT, BASE_HOST, EXP_SCRIPT);
