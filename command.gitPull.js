@@ -20,7 +20,7 @@ const TMP_BRANCH_FILE = 'tmp.json.branch.txt';
 const API_TARGET = 'https://api.github.com/repos/jerska/bitburner/commits/main';
 const DL_BASE_URL = 'https://raw.githubusercontent.com/jerska/bitburner/';
 
-const PREFIXES = ['command.', 'json.', 'solver.', 'utils.'];
+const PREFIXES = ['command.', 'json.', 'solver.', 'utils.', 'scripts.', 'solvers.js'];
 
 function cleanupBranchFile(ns) {
   ns.rm(TMP_BRANCH_FILE);
