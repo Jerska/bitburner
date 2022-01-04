@@ -49,14 +49,14 @@ export async function main(ns) {
       const running = ns
         .ps(host)
         .some((p) => p.filename === EXP_SCRIPT && String(p.args[1]).startsWith('exp-'));
-      if (Boolean(running)) {
-        if (kill) {
-          const success = ns.kill(p.filename, host, ...p.args);
-          if (success) {
-            log(`* Killed exp script on ${host}`);
-          } else {
-            logError(`* [Error] Could not kill exp script on ${host}`);
-          }
+      if (!kill && Boolean(running)) continue;
+      if (kill && !Boolean(running)) continue;
+      if (kill) {
+        const success = ns.kill(p.filename, host, ...p.args);
+        if (success) {
+          log(`* Killed exp script on ${host}`);
+        } else {
+          logError(`* [Error] Could not kill exp script on ${host}`);
         }
         continue;
       }
