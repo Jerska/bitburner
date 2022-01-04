@@ -222,8 +222,9 @@ class CandidateManager {
       let nbWeakenThreads = 0;
       let nbHackThreads = 0;
       const lowTargetMoney = server.moneyMax * MONEY_LOW_TARGET;
+      const hackMoney = ns.hackAnalyze(host);
       const hackChance = ns.hackAnalyzeChance(host);
-      const moneyHackedPerThread = ns.hackAnalyze(host) * hackChance * NB_HACKS_PER_GROW;
+      const moneyHackedPerThread = hackMoney * hackChance * NB_HACKS_PER_GROW;
       let moneyToHack = server.moneyAvailable - lowTargetMoney;
       while (true) {
         const hackSec = ns.hackAnalyzeSecurity(nbHackThreads);
@@ -240,7 +241,7 @@ class CandidateManager {
       nbTotalWeakenThreads += nbWeakenThreads;
       nbTotalHackThreads += nbHackThreads;
       log(
-        `Hack threads: ${nbTotalHackThreads} (weaken: ${nbTotalWeakenThreads}, moneyHackedPerThread: ${moneyHackedPerThread})`
+        `Hack threads: ${nbTotalHackThreads} (weaken: ${nbTotalWeakenThreads}, hackMoney: ${hackMoney}, hackChance: ${hackChance}, moneyHackedPerThread: ${moneyHackedPerThread})`
       );
     }
 
