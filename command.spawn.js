@@ -164,11 +164,13 @@ class CandidateManager {
     const server = this.serversMap[host];
     if (!server) {
       logError(`Couldn't find candidate server ${host}.`);
+      this.running[host] = false;
       return;
     }
 
     if (!this.allocator.hasThreadsAvailable()) {
       log(`No available machine to run a new thread for ${host}`);
+      this.running[host] = false;
       return;
     }
 
