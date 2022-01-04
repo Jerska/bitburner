@@ -45,12 +45,17 @@ class ServerAllocator {
     this.updateServers(serversMap);
 
     // Bind methods
+    this.hasThreadsAvailable = this.hasThreadsAvailable.bind(this);
     this.updateServers = this.updateServers.bind(this);
     this.addGrowJob = this.addGrowJob.bind(this);
     this.addHackJob = this.addHackJob.bind(this);
     this.addWeakenJob = this.addWeakenJob.bind(this);
     this.ceil = this.ceil.bind(this);
     this.reset = this.reset.bind(this);
+  }
+
+  hasThreadsAvailable() {
+    return Object.values(this.serversMap).some((s) => s.threadsAvailable > 0);
   }
 
   updateServers(serversMap) {
@@ -157,8 +162,8 @@ class CandidateManager {
       return;
     }
 
-    if (availableThreads === 0) {
-      log('No available machine to run a new thread');
+    if (!this.allocator.hasAvailableThreads()) {
+      log(`No available machine to run a new thread for ${host}`);
       return;
     }
 
