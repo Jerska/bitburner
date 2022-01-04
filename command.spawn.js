@@ -52,6 +52,7 @@ class ServerAllocator {
     this.addWeakenJob = this.addWeakenJob.bind(this);
     this.ceil = this.ceil.bind(this);
     this.reset = this.reset.bind(this);
+    this.print = this.print.bind(this);
   }
 
   hasThreadsAvailable() {
@@ -73,6 +74,7 @@ class ServerAllocator {
       }
       const server = this.serversMap[s.hostname];
       server.cpuCores = s.cpuCores;
+      server.maxRam = s.maxRam;
       server.ramAvailable = s.ramAvailable;
       server.threadsAvailable ??= Math.floor(s.ramAvailable / SCRIPT_RAM);
     }
@@ -123,6 +125,16 @@ class ServerAllocator {
       s.growJobs[host] = 0;
       s.hackJobs[host] = 0;
       s.weakenJobs[host] = 0;
+    }
+  }
+
+  print(log, host) {
+    log(`* Jobs for ${host}`);
+    for (const s of Object.values(this.serversMap)) {
+      if (s.growJobs[host] + s.hackJobs[host] + s.weakenJobs[host] === 0) continue;
+      log(
+        `  - ${s.hostname}: [w: ${s.weakenJobs[host]}, g: ${s.growJobs[host]}, h: ${s.hackJobs[host]}] on ${s.maxRam}`
+      );
     }
   }
 
@@ -226,6 +238,7 @@ class CandidateManager {
 
     const logValues = `[${nbTotalWeakenThreads}, ${nbTotalGrowThreads}, ${nbTotalHackThreads}]`;
     log(`Scheduling ${host} with [weaken, grow, hack] = ${logValues}`);
+    this.allocator.print(log, host);
     this.allocator.ceil(host);
 
     /*
