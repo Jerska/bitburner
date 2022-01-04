@@ -31,7 +31,7 @@ export async function main(ns) {
   await runner(async ({ firstRun, log, logError }) => {
     // Find target server
     const candidates = readData(ns, 'candidates');
-    if (!candidates || !targetHost[0]) {
+    if (!candidates || !candidates[0]) {
       logError(`Couldn't find targetHost`);
       return;
     }
