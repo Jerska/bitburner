@@ -25,7 +25,7 @@ export async function main(ns) {
   const readonly = opts.r;
 
   const runner = createRunner(ns, isDaemon, { sleepDuration: DAEMON_RUN_EVERY });
-  await runner(async ({ log, logError }) => {
+  await runner(async ({ log }) => {
     const player = readData(ns, 'player');
     let candidates = getServers(ns);
     candidates = candidates.filter((server) => {
