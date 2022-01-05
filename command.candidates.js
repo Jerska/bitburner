@@ -32,6 +32,7 @@ export async function main(ns) {
       if (server.purchasedByPlayer) return false;
       if (server.requiredHackingSkill > player.hacking) return false;
       if (server.moneyMax < 1) return false;
+      if (!server.hasAdminRights) return false;
       return true;
     });
     candidates = candidates.sort((a, b) => {
