@@ -42,7 +42,7 @@ export async function main(ns) {
     });
     candidates = candidates.slice(0, nbCandidates);
 
-    log('Top Hack candidates');
+    log(`Top ${nbCandidates} hack candidates`);
     for (const server of candidates) {
       const moneyAvailableStr = ns.nFormat(server.moneyAvailable, '0.00a');
       const moneyMaxStr = ns.nFormat(server.moneyMax, '0.00a');
