@@ -1,6 +1,6 @@
 import { readDataRetry } from './utils.data.js';
 
-const DURATION_MARGIN = 1000; // Amount of ms of delay to allow
+const DURATION_MARGIN = 250; // Amount of ms of delay to allow
 const HACKING_LEVEL_MARGIN = 0.04; // Prevent weakening if hacking level grew too much
 
 export async function main(ns) {
@@ -14,14 +14,14 @@ export async function main(ns) {
 
   let estimatedFinishAt = Date.now() + ns.getWeakenTime(targetHost);
   while (estimatedFinishAt < finishAt) {
-    await ns.asleep(100);
+    await ns.asleep(50);
     estimatedFinishAt = Date.now() + ns.getWeakenTime(targetHost);
   }
 
   const { hacking: currentHackingLevel } = await readDataRetry(ns, 'player');
   if (currentHackingLevel >= (1 + HACKING_LEVEL_MARGIN) * initHackingLevel) {
     // prettier-ignore
-    ns.toast(`Preventing weaken because current hacking level (${currentHackingLevel}) is greater than ${1 + HACKING_LEVEL_MARGIN} * initial hacking level (${initialHackingLevel})`, 'warning');
+    ns.print(`Preventing weaken because current hacking level (${currentHackingLevel}) is greater than ${1 + HACKING_LEVEL_MARGIN} * initial hacking level (${initialHackingLevel})`);
     return;
   }
 
