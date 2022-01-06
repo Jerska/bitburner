@@ -207,7 +207,7 @@ class Executor {
     for (const s of Object.values(this.serversMap)) {
       if (s.growThreads[host] + s.hackThreads[host] + s.weakenThreads[host] === 0) continue;
       // prettier-ignore
-      log(`- ${s.hostname}: [w: ${s.weakenThreads[host]}, g: ${s.growThreads[host]}, h: ${s.hackThreads[host]}] on ${s.maxRam}`);
+      detailed.push(`- ${s.hostname}: [w: ${s.weakenThreads[host]}, g: ${s.growThreads[host]}, h: ${s.hackThreads[host]}] on ${s.maxRam}`);
       weakenThreads += s.weakenThreads[host];
       growThreads += s.growThreads[host];
       hackThreads += s.hackThreads[host];
