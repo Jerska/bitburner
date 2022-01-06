@@ -199,7 +199,7 @@ class Executor {
   }
 
   print(log, host, { verbose = false, toast = false, prefix = '' } = {}) {
-    log(`${prefix}${prefix === '' ? '' : ' '}Jobs for ${host}`, opts);
+    log(`${prefix}${prefix === '' ? '' : ' '}Jobs for ${host}`, { toast });
     if (verbose) {
       for (const s of Object.values(this.serversMap)) {
         if (s.growThreads[host] + s.hackThreads[host] + s.weakenThreads[host] === 0) continue;
