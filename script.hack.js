@@ -17,7 +17,7 @@ export async function main(ns) {
     estimatedFinishAt = Date.now() + ns.getHackTime(targetHost);
   }
 
-  const { hacking: currentHackingLevel, money: playerMoney } = ns.readData('player');
+  const { hacking: currentHackingLevel, money: playerMoney } = readData(ns, 'player');
   if (currentHackingLevel >= (1 + HACKING_LEVEL_MARGIN) * initHackingLevel) {
     // prettier-ignore
     ns.toast(`Preventing hack because current hacking level (${currentHackingLevel}) is greater than ${1 + HACKING_LEVEL_MARGIN} * initial hacking level (${initialHackingLevel})`, 'warning');
