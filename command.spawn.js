@@ -311,7 +311,7 @@ export async function main(ns) {
           secToWeaken += GROW_THREAD_SEC_INCREASE * nbCores;
         }
 
-        executor.print(ns, log, candidate, { toast: true, prefix: 'Hack: initializing:' });
+        executor.print(ns, log, candidate, { toast: 'info', prefix: 'Hack: initializing:' });
         const waitUntil = executor.schedule(ns, candidate);
         state.waitUntil ??= {};
         state.waitUntil[candidate] = waitUntil;
