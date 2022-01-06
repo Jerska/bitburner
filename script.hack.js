@@ -13,7 +13,7 @@ export async function main(ns) {
 
   let estimatedFinishAt = Date.now() + ns.getHackTime(targetHost);
   while (estimatedFinishAt < finishAt) {
-    ns.asleep(10);
+    await ns.asleep(10);
     estimatedFinishAt = Date.now() + ns.getHackTime(targetHost);
   }
 
