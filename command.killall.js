@@ -4,6 +4,7 @@
 const USAGE = 'ka';
 
 import { parseArgs } from './utils.args.js';
+import { upsertData } from './utils.data.js';
 import { createRunner } from './utils.runner.js';
 import { getHosts } from './utils.servers.js';
 
@@ -28,6 +29,8 @@ export async function main(ns) {
       if (nbKilled > 0) {
         log(`* Killed ${host}: ${nbKilled} (${nbThreadsKilled} threads)`);
       }
+
+      await upsertData(ns, 'hackState', { maxTiming: 0 });
     }
   });
 }

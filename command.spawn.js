@@ -7,31 +7,47 @@
 const USAGE = 'spawn [-d]';
 
 import { parseArgs } from './utils.args.js';
-import { readData, upsertData, NO_DATA } from './utils.data.js';
+import { readData, upsertData } from './utils.data.js';
 import { createRunner } from './utils.runner.js';
-import { getServersMap } from './utils.servers.js';
-
-const DAEMON_RUN_EVERY = 1000;
-const MONEY_UP_TARGET = 1;
-const MONEY_LOW_TARGET = 0.2;
-const NB_HACKS_PER_GROW = 2;
-const SCRIPT_RAM = 1.8;
-const MAX_HACK_THREADS = 256;
-const HOME_KEEP_RAM = 128;
+import { getHosts, getServersMap } from './utils.servers.js';
 
 const BASE_HOST = 'home';
+const HOME_KEEP_RAM = 64;
+
 const GROW_SCRIPT = 'script.grow.js';
 const HACK_SCRIPT = 'script.hack.js';
 const WEAKEN_SCRIPT = 'script.weaken.js';
 const UTILS_DATA = 'utils.data.js';
+const SCRIPT_RAM_USAGE = 1.8;
 
-let i = 0;
+const WEAKEN_THREAD_SEC_DECREASE = 0.05;
+const GROW_THREAD_SEC_INCREASE = 0.004;
+const HACK_THREAD_SEC_INCREASE = 0.002;
 
-async function wait(ms) {
-  return await new Promise((resolve) => setTimeout(resolve, ms));
+const GROWTH_MARGIN_FACTOR = 0.1;
+
+const MARGIN_BETWEEN_ACTIONS = 1000;
+
+const DAEMON_RUN_EVERY = 4 * MARGIN_BETWEEN_ACTIONS;
+
+function computeThreadAllowances(servers, candidates, ramAllowanceFactor) {
+  const totalRam = servers.reduce((res, s) => {
+    let availableRam = s.maxRam;
+    if (s.hostname === BASE_HOST) availableRam -= 64;
+    return res + Math.max(availableRam, 0);
+  });
+  const ramAvailable = totalRam * ramAllowanceFactor;
+  const res = {};
+  for (const candidate of candidates) {
+    const ramAllowed = Math.floor(ramAvailable / 2);
+    res[candidate] = Math.floor(ramAllowed / SCRIPT_RAM_USAGE);
+    ramAvailable -= ramAllowed;
+  }
+  return res;
 }
-async function setupScripts(ns, serversMap, { force = false } = {}) {
-  for (const host of Object.keys(serversMap)) {
+
+async function setupScripts(ns, hosts, { force = false } = {}) {
+  for (const host of hosts) {
     if (force || !ns.fileExists(GROW_SCRIPT, host)) {
       await ns.scp(GROW_SCRIPT, BASE_HOST, host);
     }
@@ -47,38 +63,35 @@ async function setupScripts(ns, serversMap, { force = false } = {}) {
   }
 }
 
-class ServerAllocator {
-  constructor() {
+class Executor {
+  initialize() {
     this.serversMap = {};
 
-    // Bind methods
-    this.hasThreadsAvailable = this.hasThreadsAvailable.bind(this);
-    this.updateServers = this.updateServers.bind(this);
-    this.addGrowJob = this.addGrowJob.bind(this);
-    this.addHackJob = this.addHackJob.bind(this);
-    this.addWeakenJob = this.addWeakenJob.bind(this);
-    this.ceil = this.ceil.bind(this);
-    this.reset = this.reset.bind(this);
-    this.print = this.print.bind(this);
+    this.hackSortedServers = [];
+    this.coresSortedServers = [];
+
+    this.threadAllowances = {};
+    this.threadUsed = {};
+    this.threadResets = {};
+
+    this.jobId = 0;
+
+    this._initializeServersMap(serversMap);
   }
 
-  hasThreadsAvailable() {
-    return Object.values(this.serversMap).some((s) => s.threadsAvailable > 0);
-  }
-
-  updateServers(serversMap) {
-    // Add unknown servers to serversMap
-    for (const s of Object.values(serversMap)) {
-      if (!s.hasAdminRights || s.ramAvailable < SCRIPT_RAM) continue;
-      if (!this.serversMap[s.hostname]) {
-        this.serversMap[s.hostname] = {
-          hostname: s.hostname,
-          growJobs: {},
-          hackJobs: {},
-          weakenJobs: {},
+  configure(serversMap, threadAllowances) {
+    // Servers
+    for (const [host, s] of Object.entries(serversMap)) {
+      if (!s.hasAdminRights || s.ramAvailable < SCRIPT_RAM_USAGE) continue;
+      if (!this.serversMap[host]) {
+        this.serversMap[host] = {
+          hostname: host,
+          growThreads: {},
+          hackThreads: {},
+          weakenThreads: {},
         };
       }
-      const server = this.serversMap[s.hostname];
+      const server = this.serversMap[host];
       server.cpuCores = s.cpuCores;
       server.maxRam = s.maxRam;
       server.ramAvailable = s.ramAvailable;
@@ -86,7 +99,7 @@ class ServerAllocator {
         server.ramAvailable = Math.max(0, server.ramAvailable - HOME_KEEP_RAM);
       }
 
-      server.threadsAvailable = Math.floor(server.ramAvailable / SCRIPT_RAM);
+      server.threadAvailable = Math.floor(server.ramAvailable / SCRIPT_RAM_USAGE);
     }
 
     // Sorted lists
@@ -96,254 +109,230 @@ class ServerAllocator {
     this.coresSortedServers = Object.values(this.serversMap).sort((a, b) =>
       a.cpuCores === b.cpuCores ? a.ramAvailable - b.ramAvailable : b.cpuCores - a.cpuCores
     );
+
+    // Thread allowances
+    this.threadAllowances = threadAllowances;
   }
 
-  addGrowJob(host) {
+  reset(candidate) {
+    for (const server of Object.values(this.serversMap)) {
+      server.weakenThreads[candidate] = 0;
+      server.growThreads[candidate] = 0;
+      server.hackThreads[candidate] = 0;
+    }
+
+    let nbResetShifts = 0;
+    for (const { time, nbThreads } of this.threadResets[candidate]) {
+      if (time > Date.now()) break;
+      this.threadUsed[candidate] -= nbThreads;
+      if (this.threadUsed[candidate] < 0) {
+        ns.alert(`threadUsed[${candidate}] < 0`);
+        ns.exit();
+      }
+      nbResetShifts += 1;
+    }
+    for (let i = 0; i < nbResetShifts; ++i) {
+      this.threadResets[candidate].shift();
+    }
+  }
+
+  addWeakenThread(host) {
     const server = this._findAvailableServer({ favorCores: true });
-    if (!server || server.threadsAvailable < 1) return false;
-    server.threadsAvailable -= 1 / server.cpuCores;
-    server.growJobs[host] += 1 / server.cpuCores;
-    return true;
+    if (!server) return 0;
+    const threadAllowed = this.threadAllowances[host] - this.threadUseds[host];
+    if (threadAllowed < 1) return 0;
+    server.threadAvailable -= 1;
+    server.weakenThreads[host] += 1;
+    this.threadUseds[host] += 1;
+    return server.cpuCores;
   }
 
-  addHackJob(host) {
+  addGrowThread(host) {
+    const server = this._findAvailableServer({ favorCores: true });
+    if (!server) return 0;
+    const threadAllowed = this.threadAllowances[host] - this.threadUseds[host];
+    if (threadAllowed < 1) return 0;
+    server.threadAvailable -= 1;
+    server.growThreads[host] += 1;
+    this.threadUseds[host] += 1;
+    return server.cpuCores;
+  }
+
+  addHackThread(host) {
     const server = this._findAvailableServer({ favorCores: false });
-    if (!server || server.threadsAvailable < 1) return false;
-    server.threadsAvailable -= 1;
-    server.hackJobs[host] += 1;
-    return true;
+    if (!server) return 0;
+    const threadAllowed = this.threadAllowances[host] - this.threadUseds[host];
+    if (threadAllowed < 1) return 0;
+    server.threadAvailable -= 1;
+    server.hackThreads[host] += 1;
+    this.threadUseds[host] += 1;
+    return 1;
   }
 
-  addWeakenJob(host) {
-    const server = this._findAvailableServer({ favorCores: true });
-    if (!server || server.threadsAvailable < 1) return false;
-    server.threadsAvailable -= 1 / server.cpuCores;
-    server.weakenJobs[host] += 1 / server.cpuCores;
-    return true;
+  schedule(host) {
+    let totalNbThreads = 0;
+    let targetTime = Math.round(Date.now() + ns.getWeakenTime(host));
+    for (const [runHost, server] of Object.entries(this.serversMap)) {
+      const nbThreads = server.hackThreads[host] ?? 0;
+      if (nbThreads === 0) continue;
+      totalNbThreads -= nbThreads;
+      ns.exec(HACK_SCRIPT, runHost, nbThreads, host, targetTime, `spawn-${++this.jobId}`);
+    }
+
+    targetTime += MARGIN_BETWEEN_ACTIONS;
+    for (const [runHost, server] of Object.entries(this.serversMap)) {
+      const nbThreads = server.growThreads[host] ?? 0;
+      if (nbThreads === 0) continue;
+      totalNbThreads -= nbThreads;
+      ns.exec(GROW_SCRIPT, runHost, nbThreads, host, targetTime, `spawn-${++this.jobId}`);
+    }
+
+    targetTime += MARGIN_BETWEEN_ACTIONS;
+    for (const [runHost, server] of Object.entries(this.serversMap)) {
+      const nbThreads = server.weakenThreads[host] ?? 0;
+      if (nbThreads === 0) continue;
+      totalNbThreads -= nbThreads;
+      ns.exec(WEAKEN_SCRIPT, runHost, nbThreads, host, targetTime, `spawn-${++this.jobId}`);
+    }
+
+    targetTime += MARGIN_BETWEEN_ACTIONS;
+    this.threadResets[host].push({ time: targetTime, nbThreads: totalNbThreads });
   }
 
-  ceil(host) {
-    for (const s of Object.values(this.serversMap)) {
-      s.growJobs[host] = Math.ceil(s.growJobs[host]);
-      s.hackJobs[host] = Math.ceil(s.hackJobs[host]);
-      s.weakenJobs[host] = Math.ceil(s.weakenJobs[host]);
+  print(log, host, { verbose = false, toast = false, prefix = '' } = {}) {
+    log(`${prefix}${prefix === '' ? '' : ' '}Jobs for ${host}`, opts);
+    if (verbose) {
+      for (const s of Object.values(this.serversMap)) {
+        if (s.growThreads[host] + s.hackThreads[host] + s.weakenThreads[host] === 0) continue;
+        // prettier-ignore
+        log(`- ${s.hostname}: [w: ${s.weakenThreads[host]}, g: ${s.growThreads[host]}, h: ${s.hackThreads[host]}] on ${s.maxRam}`);
+      }
     }
   }
 
-  reset(host) {
-    for (const s of Object.values(this.serversMap)) {
-      s.growJobs[host] = 0;
-      s.hackJobs[host] = 0;
-      s.weakenJobs[host] = 0;
+  async saveState() {
+    let maxTiming = 0;
+    for (const resets of Object.values(this.threadResets)) {
+      for (const { time } of resets) {
+        maxTiming = Math.max(maxTiming, time);
+      }
     }
-  }
-
-  print(log, host) {
-    log(`* Jobs for ${host}`);
-    for (const s of Object.values(this.serversMap)) {
-      if (s.growJobs[host] + s.hackJobs[host] + s.weakenJobs[host] === 0) continue;
-      log(
-        `  - ${s.hostname}: [w: ${s.weakenJobs[host]}, g: ${s.growJobs[host]}, h: ${s.hackJobs[host]}] on ${s.maxRam}`
-      );
-    }
+    await upsertData(ns, 'hackState', { maxTiming });
   }
 
   _findAvailableServer({ favorCores }) {
     const sorted = favorCores ? this.coresSortedServers : this.hackSortedServers;
-    return sorted.find((s) => s.threadsAvailable > 0);
-  }
-}
-
-class CandidateManager {
-  constructor(allocator) {
-    this.allocator = allocator;
-
-    this.serversMap = {};
-    this.running = {};
-
-    // Bind
-    this.updateServers = this.updateServers.bind(this);
-    this.run = this.run.bind(this);
-  }
-
-  updateServers(serversMap) {
-    this.serversMap = serversMap;
-    this.allocator.updateServers(serversMap);
-  }
-
-  run(ns, log, logError, host) {
-    if (this.running[host]) return;
-    this.running[host] = true;
-
-    this.allocator.reset(host);
-
-    const server = this.serversMap[host];
-    if (!server) {
-      logError(`Couldn't find candidate server ${host}.`);
-      this.running[host] = false;
-      return;
-    }
-
-    if (!this.allocator.hasThreadsAvailable()) {
-      log(`No available machine to run a new thread for ${host}`);
-      this.running[host] = false;
-      return;
-    }
-
-    let nbTotalGrowThreads = 0;
-    let nbTotalHackThreads = 0;
-    let nbTotalWeakenThreads = 0;
-
-    {
-      // Weaken to minimum
-      let nbWeakenThreads = 0;
-      const weakenMinimum = server.hackDifficulty - server.minDifficulty;
-      while (true) {
-        const weakenSec = ns.weakenAnalyze(nbWeakenThreads);
-        if (weakenSec >= weakenMinimum) break;
-        if (!this.allocator.addWeakenJob(host)) break;
-        nbWeakenThreads += 1;
-      }
-      nbTotalWeakenThreads += nbWeakenThreads;
-    }
-
-    // Grow to max target
-    {
-      let nbWeakenThreads = 0;
-      let nbGrowThreads = 0;
-      const targetMoney = server.moneyMax * MONEY_UP_TARGET;
-      const targetGrowRatio = Math.max(targetMoney / (server.moneyAvailable + 1), 1);
-      const targetGrowThreads = ns.growthAnalyze(host, targetGrowRatio);
-      while (true) {
-        const growSec = ns.growthAnalyzeSecurity(nbGrowThreads);
-        const weakenSec = ns.weakenAnalyze(nbWeakenThreads);
-        if (growSec > weakenSec) {
-          if (!this.allocator.addWeakenJob(host)) break;
-          nbWeakenThreads += 1;
-        }
-        if (nbGrowThreads >= targetGrowThreads) break;
-        if (!this.allocator.addGrowJob(host)) break;
-        nbGrowThreads += 1;
-      }
-      nbTotalWeakenThreads += nbWeakenThreads;
-      nbTotalGrowThreads += nbGrowThreads;
-    }
-
-    // Hack
-    {
-      let nbWeakenThreads = 0;
-      let nbHackThreads = 0;
-      const lowTargetMoney = server.moneyMax * MONEY_LOW_TARGET;
-      const hackChance = ns.hackAnalyzeChance(host);
-      const targetMoney = server.moneyAvailable - lowTargetMoney;
-      const targetHackThreads = ns.hackAnalyzeThreads(host, targetMoney) / hackChance;
-      while (true) {
-        const hackSec = ns.hackAnalyzeSecurity(nbHackThreads);
-        const weakenSec = ns.weakenAnalyze(nbWeakenThreads);
-        if (hackSec > weakenSec) {
-          if (!this.allocator.addWeakenJob(host)) break;
-          nbWeakenThreads += 1;
-        }
-        if (nbHackThreads >= targetHackThreads) break;
-        if (!this.allocator.addHackJob(host)) break;
-        nbHackThreads += NB_HACKS_PER_GROW;
-      }
-      nbTotalWeakenThreads += nbWeakenThreads;
-      nbTotalHackThreads += nbHackThreads;
-    }
-
-    const logValues = `[w: ${nbTotalWeakenThreads}, g: ${nbTotalGrowThreads}, h: ${nbTotalHackThreads}]`;
-    const durationS = Math.round(server.weakenTime / 1000);
-    log(`Scheduling ${host} with ${logValues} (duration = ${durationS}s)`);
-    this.allocator.print(log, host);
-    this.allocator.ceil(host);
-
-    // Weaken
-    {
-      for (const [runHost, server] of Object.entries(this.allocator.serversMap)) {
-        const nbWeakenThreads = server.weakenJobs[host] ?? 0;
-        if (nbWeakenThreads === 0) continue;
-        ns.exec(WEAKEN_SCRIPT, runHost, nbWeakenThreads, host, `spawn-${++i}`);
-      }
-    }
-
-    // Grow
-    {
-      for (const [runHost, server] of Object.entries(this.allocator.serversMap)) {
-        const nbGrowThreads = server.growJobs[host] ?? 0;
-        if (nbGrowThreads === 0) continue;
-        ns.exec(GROW_SCRIPT, runHost, nbGrowThreads, host, `spawn-${++i}`);
-      }
-    }
-
-    // Hack
-    {
-      const hackTime = ns.getHackTime(host);
-
-      // Directly
-      for (const [runHost, server] of Object.entries(this.allocator.serversMap)) {
-        let nbHackThreads = server.hackJobs[host] ?? 0;
-        if (nbHackThreads === 0) continue;
-        while (nbHackThreads > 0) {
-          const nbThreads = Math.min(nbHackThreads, MAX_HACK_THREADS);
-          ns.exec(HACK_SCRIPT, runHost, nbThreads, host, `spawn-${++i}`);
-          nbHackThreads -= nbThreads;
-        }
-      }
-
-      // Second round
-      setTimeout(() => {
-        for (const [runHost, server] of Object.entries(this.allocator.serversMap)) {
-          let nbHackThreads = server.hackJobs[host] ?? 0;
-          if (nbHackThreads === 0) continue;
-          while (nbHackThreads > 0) {
-            const nbThreads = Math.min(nbHackThreads, MAX_HACK_THREADS);
-            ns.exec(HACK_SCRIPT, runHost, nbThreads, host, `spawn-${++i}`);
-            nbHackThreads -= nbThreads;
-          }
-        }
-      }, Math.ceil(hackTime * 1.1));
-    }
-
-    setTimeout(() => {
-      this.running[host] = false;
-      this.allocator.reset(host);
-    }, Math.ceil(server.weakenTime * 1.01));
-  }
-
-  async wait() {
-    while (Object.values(this.running).some((e) => Boolean(e))) {
-      await wait(1);
-    }
+    return sorted.find((s) => s.threadAvailable > 0);
   }
 }
 
 export async function main(ns) {
   ns.disableLog('ALL');
 
-  const { opts } = parseArgs(ns, { maxArgs: 0, USAGE });
+  const { args, opts } = parseArgs(ns, { minArgs: 0, maxArgs: 2, USAGE });
   const isDaemon = opts.d;
 
-  const allocator = new ServerAllocator();
-  const candidateManager = new CandidateManager(allocator);
+  const targetMoneyRatio = parseFloat(args[0] ?? '0.05');
+  const ramAllowanceFactor = parseFloat(args[1] ?? '1.00');
+
+  const executor = new Executor();
+
+  const hosts = getHosts(ns);
+  let previousServersLength = hosts.length;
+  await setupScripts(ns, hosts, { force: true });
+
+  const { maxTiming: previousMaxTiming = 0 } = readData(ns, 'hackState') ?? {};
 
   const runner = createRunner(ns, isDaemon, { sleepDuration: DAEMON_RUN_EVERY });
-  await runner(async ({ log, logError }) => {
-    const candidates = readData(ns, 'candidates');
-    if (candidates === NO_DATA) {
-      logError(`Couldn't read candidates data.`);
-      return;
+  await runner(async ({ log, logError, stop }) => {
+    if (previousMaxTiming > Date.now()) {
+      // prettier-ignore
+      logError(`Jobs from previous spawn might still be running (maxTiming = ${previousMaxTiming})\nRun \`ka\` first, then re-run spawn`, { alert: true });
+      stop();
     }
-    log(`Spawning with ${candidates.length} candidates.`);
 
     const serversMap = getServersMap(ns);
-    candidateManager.updateServers(serversMap);
-    await setupScripts(ns, serversMap);
+    const servers = Object.values(serversMap);
+    const candidates = readData(ns, 'candidates');
 
-    for (const host of candidates) {
-      candidateManager.run(ns, log, logError, host);
+    const threadAllowances = computeThreadAllowances(servers, candidates, ramAllowanceFactor);
+
+    if (servers.length !== previousServersLength) {
+      previousServersLength = servers.length;
+      await setupScripts(ns, getServersMap(ns));
     }
-  });
 
-  await candidateManager.wait();
+    executor.configure(serversMap, threadAllowances);
+
+    for (const candidate of candidates) {
+      const server = serversMap[candidate];
+
+      executor.reset(candidate);
+
+      // First weaken to min and grow the server to max
+      if (server.moneyAvailable < (1 - targetMoneyRatio) * server.moneyMax) {
+        let secToWeaken = server.hackDifficulty - server.minDifficulty;
+
+        // Weaken to min difficulty
+        while (secToWeaken > 0) {
+          const nbCores = executor.addWeakenThread(candidate);
+          if (nbCores === 0) break;
+          secToWeaken -= WEAKEN_THREAD_SEC_DECREASE * nbCores;
+        }
+
+        // Grow to 105% (a bit of wiggle room)
+        const targetGrowthAmount = (1.05 * server.moneyMax) / (server.moneyAvailable + 1);
+        let growThreadsToAdd = Math.ceil(ns.growthAnalyze(candidate, targetGrowthAmount + 0.05));
+        while (growThreadsToAdd > 0) {
+          if (secToWeaken > 0) {
+            const nbCores = executor.addWeakenThread(candidate);
+            if (nbCores === 0) break;
+            secToWeaken -= WEAKEN_THREAD_SEC_DECREASE * nbCores;
+          }
+          const nbCores = executor.addGrowThread(candidate);
+          if (nbCores === 0) break;
+          growThreadsToAdd -= nbCores;
+          secToWeaken += GROW_THREAD_SEC_INCREASE * nbCores;
+        }
+
+        executor.log(log, candidate, { toast: true, prefix: 'Hack: initializing: ' });
+      } else {
+        const targetHackAmount = server.moneyMax * targetMoneyRatio;
+        const targetGrowthAmount = (1 + GROWTH_MARGIN_FACTOR) / (1 - targetMoneyRatio);
+        let hackThreadsToAdd = Math.floor(ns.hackAnalyzeThreads(candidate, targetHackAmount));
+        let growThreadsToAdd = Math.ceil(ns.growthAnalyze(candidate, targetGrowthAmount + 0.05));
+        const hackSecIncrease = hackThreadsToAdd * HACK_THREAD_SEC_INCREASE;
+        const growSecIncrease = growThreadsToAdd * GROW_THREAD_SEC_INCREASE;
+        const secIncrease = hackSecIncrease + growSecIncrease;
+        let weakenThreadsToAdd = Math.ceil(secIncrease / WEAKEN_THREAD_SEC_DECREASE);
+        let stop = false;
+        while (weakenThreadsToAdd > 0) {
+          const nbCores = executor.addWeakenThread(candidate);
+          if (nbCores === 0) {
+            stop = true;
+            break;
+          }
+          weakenThreadsToAdd -= nbCores;
+        }
+        while (!stop && growThreadsToAdd > 0) {
+          const nbCores = executor.addGrowThread(candidate);
+          if (nbCores === 0) {
+            stop = true;
+            break;
+          }
+          growThreadsToAdd -= nbCores;
+        }
+        while (!stop && hackThreadsToAdd > 0) {
+          const couldHack = executor.addHackThread(candidate);
+          if (!couldHack) break;
+          --hackThreadsToAdd;
+        }
+      }
+
+      executor.schedule(candidate);
+      executor.print(log, candidate);
+    }
+
+    await executor.saveState();
+  });
 }

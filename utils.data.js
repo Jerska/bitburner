@@ -6,7 +6,7 @@
  */
 export const NO_DATA = undefined;
 
-const DATA_TYPES = ['version', 'player', 'servers', 'candidates'];
+const DATA_TYPES = ['version', 'player', 'servers', 'candidates', 'hackState'];
 
 const NO_FILE_DATA = '';
 const NO_PORT_DATA = 'NULL PORT DATA';
