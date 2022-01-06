@@ -28,7 +28,7 @@ const GROWTH_MARGIN_FACTOR = 0.1;
 
 const MARGIN_BETWEEN_ACTIONS = 1000;
 
-const DAEMON_RUN_EVERY = 4 * MARGIN_BETWEEN_ACTIONS;
+const DAEMON_RUN_EVERY = 1000;
 
 function computeThreadAllowances(servers, candidates, ramAllowanceFactor) {
   const totalRam = servers.reduce((res, s) => {
@@ -196,6 +196,7 @@ class Executor {
 
     targetTime += MARGIN_BETWEEN_ACTIONS;
     this.threadResets[host].push({ time: targetTime, nbThreads: totalNbThreads });
+    return targetTime;
   }
 
   print(log, host, { verbose = false, toast = false, prefix = '' } = {}) {
@@ -209,14 +210,16 @@ class Executor {
     }
   }
 
-  async saveState(ns) {
+  async saveState(ns, state = {}) {
     let maxTiming = 0;
     for (const resets of Object.values(this.threadResets)) {
       for (const { time } of resets) {
         maxTiming = Math.max(maxTiming, time);
       }
     }
-    await upsertData(ns, 'hackState', { maxTiming });
+    const newState = { maxTiming, ...state };
+    await upsertData(ns, 'hackState');
+    return newState;
   }
 
   _findAvailableServer({ favorCores }) {
@@ -240,13 +243,12 @@ export async function main(ns) {
   let previousServersLength = hosts.length;
   await setupScripts(ns, hosts, { force: true });
 
-  const { maxTiming: previousMaxTiming = 0 } = readData(ns, 'hackState') ?? {};
-
   const runner = createRunner(ns, isDaemon, { sleepDuration: DAEMON_RUN_EVERY });
-  await runner(async ({ log, logError, stop }) => {
-    if (previousMaxTiming > Date.now()) {
+  await runner(async ({ firstRun, log, logError, stop }) => {
+    let state = readData(ns, 'hackState') ?? {};
+    if (firstRun && (state.maxTiming ?? 0) > Date.now()) {
       // prettier-ignore
-      logError(`Jobs from previous spawn might still be running (maxTiming = ${previousMaxTiming})\nRun \`ka\` first, then re-run spawn`, { alert: true });
+      logError(`Jobs from previous spawn might still be running (maxTiming = ${(state.maxTiming ?? 0)})\nRun \`ka\` first, then re-run spawn`, { alert: true });
       stop();
     }
 
@@ -264,6 +266,8 @@ export async function main(ns) {
     executor.configure(serversMap, threadAllowances);
 
     for (const candidate of candidates) {
+      if (state.waitUntil && (state.waitUntil[candidate] ?? 0) > Date.now()) continue;
+
       const server = serversMap[candidate];
 
       executor.reset(candidate);
@@ -295,6 +299,9 @@ export async function main(ns) {
         }
 
         executor.print(log, candidate, { toast: true, prefix: 'Hack: initializing: ' });
+        const waitUntil = executor.schedule(ns, candidate);
+        state.waitUntil ??= {};
+        state.waitUntil[candidate] = waitUntil;
       } else {
         const targetHackAmount = server.moneyMax * targetMoneyRatio;
         const targetGrowthAmount = (1 + GROWTH_MARGIN_FACTOR) / (1 - targetMoneyRatio);
@@ -326,12 +333,14 @@ export async function main(ns) {
           if (!couldHack) break;
           --hackThreadsToAdd;
         }
-      }
 
-      executor.schedule(ns, candidate);
-      executor.print(log, candidate);
+        executor.print(log, candidate);
+        executor.schedule(ns, candidate);
+        state.waitUntil ??= {};
+        state.waitUntil[candidate] = 5 * MARGIN_BETWEEN_ACTIONS;
+      }
     }
 
-    await executor.saveState(ns);
+    await executor.saveState(ns, state);
   });
 }
