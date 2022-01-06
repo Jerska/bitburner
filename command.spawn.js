@@ -199,7 +199,7 @@ class Executor {
     return targetTime;
   }
 
-  print(ns, log, host, { verbose = false, toast = false, prefix = '' } = {}) {
+  print(ns, log, host, { verbose = false, toast = null, prefix = '' } = {}) {
     const duration = Math.round(ns.getWeakenTime(host) / 1000);
     const detailed = [];
     let weakenThreads = 0;
