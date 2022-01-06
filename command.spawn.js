@@ -199,7 +199,7 @@ class Executor {
     return targetTime;
   }
 
-  print(log, host, { verbose = false, toast = false, prefix = '' } = {}) {
+  print(ns, log, host, { verbose = false, toast = false, prefix = '' } = {}) {
     const duration = Math.round(ns.getWeakenTime(host) / 1000);
     const detailed = [];
     let weakenThreads = 0;
@@ -311,7 +311,7 @@ export async function main(ns) {
           secToWeaken += GROW_THREAD_SEC_INCREASE * nbCores;
         }
 
-        executor.print(log, candidate, { toast: true, prefix: 'Hack: initializing:' });
+        executor.print(ns, log, candidate, { toast: true, prefix: 'Hack: initializing:' });
         const waitUntil = executor.schedule(ns, candidate);
         state.waitUntil ??= {};
         state.waitUntil[candidate] = waitUntil;
@@ -347,7 +347,7 @@ export async function main(ns) {
           --hackThreadsToAdd;
         }
 
-        executor.print(log, candidate);
+        executor.print(ns, log, candidate);
         executor.schedule(ns, candidate);
         state.waitUntil ??= {};
         state.waitUntil[candidate] = 5 * MARGIN_BETWEEN_ACTIONS;
