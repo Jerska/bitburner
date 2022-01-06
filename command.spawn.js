@@ -142,29 +142,29 @@ class Executor {
     if (threadAllowed < 1) return 0;
     server.threadAvailable -= 1;
     server.weakenThreads[host] += 1;
-    this.threadUseds[host] += 1;
+    this.threadUsed[host] += 1;
     return server.cpuCores;
   }
 
   addGrowThread(host) {
     const server = this._findAvailableServer({ favorCores: true });
     if (!server) return 0;
-    const threadAllowed = this.threadAllowances[host] - this.threadUseds[host];
+    const threadAllowed = this.threadAllowances[host] - this.threadUsed[host];
     if (threadAllowed < 1) return 0;
     server.threadAvailable -= 1;
     server.growThreads[host] += 1;
-    this.threadUseds[host] += 1;
+    this.threadUsed[host] += 1;
     return server.cpuCores;
   }
 
   addHackThread(host) {
     const server = this._findAvailableServer({ favorCores: false });
     if (!server) return 0;
-    const threadAllowed = this.threadAllowances[host] - this.threadUseds[host];
+    const threadAllowed = this.threadAllowances[host] - this.threadUsed[host];
     if (threadAllowed < 1) return 0;
     server.threadAvailable -= 1;
     server.hackThreads[host] += 1;
-    this.threadUseds[host] += 1;
+    this.threadUsed[host] += 1;
     return 1;
   }
 
