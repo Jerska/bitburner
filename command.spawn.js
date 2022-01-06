@@ -200,12 +200,24 @@ class Executor {
   }
 
   print(log, host, { verbose = false, toast = false, prefix = '' } = {}) {
-    log(`${prefix}${prefix === '' ? '' : ' '}Jobs for ${host}`, { toast });
+    const detailed = [];
+    let weakenThreads = 0;
+    let growThreads = 0;
+    let hackThreads = 0;
+    for (const s of Object.values(this.serversMap)) {
+      if (s.growThreads[host] + s.hackThreads[host] + s.weakenThreads[host] === 0) continue;
+      // prettier-ignore
+      log(`- ${s.hostname}: [w: ${s.weakenThreads[host]}, g: ${s.growThreads[host]}, h: ${s.hackThreads[host]}] on ${s.maxRam}`);
+      weakenThreads += s.weakenThreads[host];
+      growThreads += s.growThreads[host];
+      hackThreads += s.hackThreads[host];
+    }
+
+    // prettier-ignore
+    log(`${prefix}${prefix === '' ? '' : ' '}Jobs for ${host} [w: ${weakenThreads}, g: ${growThreads}, h: ${hackThreads}]`, { toast });
     if (verbose) {
-      for (const s of Object.values(this.serversMap)) {
-        if (s.growThreads[host] + s.hackThreads[host] + s.weakenThreads[host] === 0) continue;
-        // prettier-ignore
-        log(`- ${s.hostname}: [w: ${s.weakenThreads[host]}, g: ${s.growThreads[host]}, h: ${s.hackThreads[host]}] on ${s.maxRam}`);
+      for (const row of detailed) {
+        log(row);
       }
     }
   }
@@ -298,7 +310,7 @@ export async function main(ns) {
           secToWeaken += GROW_THREAD_SEC_INCREASE * nbCores;
         }
 
-        executor.print(log, candidate, { toast: true, prefix: 'Hack: initializing: ' });
+        executor.print(log, candidate, { toast: true, prefix: 'Hack: initializing:' });
         const waitUntil = executor.schedule(ns, candidate);
         state.waitUntil ??= {};
         state.waitUntil[candidate] = waitUntil;
