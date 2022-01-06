@@ -138,7 +138,7 @@ class Executor {
   addWeakenThread(host) {
     const server = this._findAvailableServer({ favorCores: true });
     if (!server) return 0;
-    const threadAllowed = this.threadAllowances[host] - this.threadUseds[host];
+    const threadAllowed = this.threadAllowances[host] - this.threadUsed[host];
     if (threadAllowed < 1) return 0;
     server.threadAvailable -= 1;
     server.weakenThreads[host] += 1;
