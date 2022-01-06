@@ -168,7 +168,7 @@ class Executor {
     return 1;
   }
 
-  schedule(host) {
+  schedule(ns, host) {
     let totalNbThreads = 0;
     let targetTime = Math.round(Date.now() + ns.getWeakenTime(host));
     for (const [runHost, server] of Object.entries(this.serversMap)) {
@@ -328,7 +328,7 @@ export async function main(ns) {
         }
       }
 
-      executor.schedule(candidate);
+      executor.schedule(ns, candidate);
       executor.print(log, candidate);
     }
 
