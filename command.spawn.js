@@ -231,7 +231,7 @@ class Executor {
       }
     }
     const newState = { maxTiming, ...state };
-    await upsertData(ns, 'hackState');
+    await upsertData(ns, 'hackState', newState);
     return newState;
   }
 
