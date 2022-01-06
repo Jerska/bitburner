@@ -23,13 +23,13 @@ export async function main(ns) {
   const { hacking: currentHackingLevel, money: playerMoney } = await readDataRetry(ns, 'player');
   if (currentHackingLevel >= (1 + HACKING_LEVEL_MARGIN) * initHackingLevel) {
     // prettier-ignore
-    ns.print(`Preventing hack because current hacking level (${currentHackingLevel}) is greater than ${1 + HACKING_LEVEL_MARGIN} * initial hacking level (${initialHackingLevel})`);
+    ns.toast(`Preventing hack because current hacking level (${currentHackingLevel}) is greater than ${1 + HACKING_LEVEL_MARGIN} * initial hacking level (${initialHackingLevel})`, 'warning');
     return;
   }
 
   if (estimatedFinishAt > finishAt + DURATION_MARGIN) {
     // prettier-ignore
-    ns.toast(`Preventing hack because it ran too late: +${estimatedFinishAt - finishAt}ms`, 'warning');
+    ns.print(`Preventing hack because it ran too late: +${estimatedFinishAt - finishAt}ms`);
     return;
   }
 
