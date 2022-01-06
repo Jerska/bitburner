@@ -119,6 +119,7 @@ class Executor {
       server.hackThreads[candidate] = 0;
     }
 
+    this.threadResets[candidate] ??= [];
     let nbResetShifts = 0;
     for (const { time, nbThreads } of this.threadResets[candidate]) {
       if (time > Date.now()) break;
