@@ -208,14 +208,14 @@ class Executor {
     for (const s of Object.values(this.serversMap)) {
       if (s.growThreads[host] + s.hackThreads[host] + s.weakenThreads[host] === 0) continue;
       // prettier-ignore
-      detailed.push(`- ${s.hostname}: [w: ${s.weakenThreads[host]}, g: ${s.growThreads[host]}, h: ${s.hackThreads[host]}] in ${duration}s on ${s.maxRam}GB`);
+      detailed.push(`- ${s.hostname}: [w: ${s.weakenThreads[host]}, g: ${s.growThreads[host]}, h: ${s.hackThreads[host]}] on ${s.maxRam}GB`);
       weakenThreads += s.weakenThreads[host];
       growThreads += s.growThreads[host];
       hackThreads += s.hackThreads[host];
     }
 
     // prettier-ignore
-    log(`${prefix}${prefix === '' ? '' : ' '}Jobs for ${host} [w: ${weakenThreads}, g: ${growThreads}, h: ${hackThreads}]`, { toast });
+    log(`${prefix}${prefix === '' ? '' : ' '}Jobs for ${host} [w: ${weakenThreads}, g: ${growThreads}, h: ${hackThreads}] in ${duration}s`, { toast });
     if (verbose) {
       for (const row of detailed) {
         log(row);
