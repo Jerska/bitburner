@@ -64,7 +64,7 @@ async function setupScripts(ns, hosts, { force = false } = {}) {
 }
 
 class Executor {
-  initialize() {
+  constructor() {
     this.serversMap = {};
 
     this.hackSortedServers = [];
