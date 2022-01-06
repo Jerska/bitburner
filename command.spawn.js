@@ -294,7 +294,7 @@ export async function main(ns) {
           secToWeaken += GROW_THREAD_SEC_INCREASE * nbCores;
         }
 
-        executor.log(log, candidate, { toast: true, prefix: 'Hack: initializing: ' });
+        executor.print(log, candidate, { toast: true, prefix: 'Hack: initializing: ' });
       } else {
         const targetHackAmount = server.moneyMax * targetMoneyRatio;
         const targetGrowthAmount = (1 + GROWTH_MARGIN_FACTOR) / (1 - targetMoneyRatio);
