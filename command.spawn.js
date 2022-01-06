@@ -253,7 +253,6 @@ export async function main(ns) {
   const executor = new Executor();
 
   const hosts = getHosts(ns);
-  let previousServersLength = hosts.length;
   await setupScripts(ns, hosts, { force: true });
 
   const runner = createRunner(ns, isDaemon, { sleepDuration: DAEMON_RUN_EVERY });
@@ -270,13 +269,9 @@ export async function main(ns) {
     const candidates = readData(ns, 'candidates');
 
     const threadAllowances = computeThreadAllowances(servers, candidates, ramAllowanceFactor);
-
-    if (servers.length !== previousServersLength) {
-      previousServersLength = servers.length;
-      await setupScripts(ns, getServersMap(ns));
-    }
-
     executor.configure(serversMap, threadAllowances);
+
+    await setupScripts(ns, Object.keys(serversMap));
 
     for (const candidate of candidates) {
       if (state.waitUntil && (state.waitUntil[candidate] ?? 0) > Date.now()) continue;
