@@ -209,7 +209,7 @@ class Executor {
     }
   }
 
-  async saveState() {
+  async saveState(ns) {
     let maxTiming = 0;
     for (const resets of Object.values(this.threadResets)) {
       for (const { time } of resets) {
@@ -332,6 +332,6 @@ export async function main(ns) {
       executor.print(log, candidate);
     }
 
-    await executor.saveState();
+    await executor.saveState(ns);
   });
 }
