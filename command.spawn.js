@@ -26,9 +26,9 @@ const HACK_THREAD_SEC_INCREASE = 0.002;
 
 const GROWTH_MARGIN_FACTOR = 0.1;
 
-const MARGIN_BETWEEN_ACTIONS = 1000;
+const MARGIN_BETWEEN_ACTIONS = 2000;
 
-const DAEMON_RUN_EVERY = 1000;
+const DAEMON_RUN_EVERY = MARGIN_BETWEEN_ACTIONS * 4;
 
 function computeThreadAllowances(servers, candidates, ramAllowanceFactor) {
   const totalRam = servers.reduce((res, s) => {

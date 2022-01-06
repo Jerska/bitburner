@@ -1,6 +1,6 @@
 import { readDataRetry } from './utils.data.js';
 
-const DURATION_MARGIN = 50; // Amount of ms of delay to allow
+const DURATION_MARGIN = 1000; // Amount of ms of delay to allow
 const HACKING_LEVEL_MARGIN = 0.04; // Prevent growing if hacking level grew too much
 
 export async function main(ns) {
@@ -14,7 +14,7 @@ export async function main(ns) {
 
   let estimatedFinishAt = Date.now() + ns.getGrowTime(targetHost);
   while (estimatedFinishAt < finishAt) {
-    await ns.asleep(10);
+    await ns.asleep(100);
     estimatedFinishAt = Date.now() + ns.getGrowTime(targetHost);
   }
 
