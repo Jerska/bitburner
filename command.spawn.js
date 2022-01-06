@@ -75,8 +75,6 @@ class Executor {
     this.threadResets = {};
 
     this.jobId = 0;
-
-    this._initializeServersMap(serversMap);
   }
 
   configure(serversMap, threadAllowances) {
