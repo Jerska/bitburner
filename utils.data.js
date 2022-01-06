@@ -43,7 +43,7 @@ export function readData(ns, type) {
   return NO_DATA;
 }
 
-export async function readDataRetry(ns, type, { timeout = 10000 }) {
+export async function readDataRetry(ns, type, { timeout = 10000 } = {}) {
   let duration = 0;
   let data = readData(ns, type);
   while (data === NO_DATA && duration < timeout) {
