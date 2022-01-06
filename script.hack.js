@@ -7,6 +7,7 @@ const HACKING_LEVEL_MARGIN = 0.04; // Prevent hacking if hacking level grew too 
 
 export async function main(ns) {
   ns.disableLog('ALL');
+  ns.enableLog('hack');
 
   const targetHost = ns.args[0];
   const finishAt = parseInt(ns.args[1], 10);
