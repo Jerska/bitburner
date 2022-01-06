@@ -6,6 +6,8 @@ const DURATION_MARGIN = 50; // Amount of ms of delay to allow
 const HACKING_LEVEL_MARGIN = 0.04; // Prevent hacking if hacking level grew too much
 
 export async function main(ns) {
+  ns.disableLog('ALL');
+
   const targetHost = ns.args[0];
   const finishAt = parseInt(ns.args[1], 10);
 
