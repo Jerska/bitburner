@@ -30,7 +30,7 @@ export async function main(ns) {
         log(`* Killed ${host}: ${nbKilled} (${nbThreadsKilled} threads)`);
       }
 
-      await upsertData(ns, 'hackState', { maxTiming: 0, waitUntil: {} });
+      await upsertData(ns, 'hackState', { maxTiming: 0, waitUntil: {}, intiialized: {} });
     }
   });
 }

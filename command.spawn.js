@@ -285,6 +285,7 @@ export async function main(ns) {
     let state = readData(ns, 'hackState') ?? {};
     state.maxTiming ??= 0;
     state.waitUntil ??= {};
+    state.initialized ??= {};
 
     if (firstRun && state.maxTiming > Date.now()) {
       // prettier-ignore
@@ -312,7 +313,7 @@ export async function main(ns) {
 
       // First weaken to min and grow the server to max
       const recoverThreshold = (1 - TRIGGER_RECOVER_FACTOR * targetMoneyRatio) * server.moneyMax;
-      if (server.moneyAvailable < recoverThreshold) {
+      if (!state.initialized[candidate] && server.moneyAvailable < recoverThreshold) {
         // Grow to 105% (a bit of wiggle room)
         const targetGrowthAmount = (1.05 * server.moneyMax) / (server.moneyAvailable + 1);
         const growThreads = Math.ceil(ns.growthAnalyze(candidate, targetGrowthAmount + 0.05));
@@ -330,6 +331,7 @@ export async function main(ns) {
         executor.schedule(ns, candidate, weakenTime);
 
         state.waitUntil[candidate] = Date.now() + weakenTime + TIMING_MARGIN;
+        state.initialized[candidate] = true;
       } else {
         // Compute how to get N% and restore it in 1 weaken duration
         const targetHackAmount = server.moneyMax * targetMoneyRatio;
