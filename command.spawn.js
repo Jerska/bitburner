@@ -262,7 +262,6 @@ export async function main(ns) {
     let state = readData(ns, 'hackState') ?? {};
     state.maxTiming ??= 0;
     state.waitUntil ??= {};
-    state.initialized ??= {};
 
     if (firstRun && state.maxTiming > Date.now()) {
       // prettier-ignore
@@ -290,27 +289,24 @@ export async function main(ns) {
 
       // First weaken to min and grow the server to max
       const recoverThreshold = TRIGGER_RECOVER_FACTOR * targetMoneyRatio * server.moneyMax;
-      if (!state.initialized[candidate]) {
-        if (server.moneyAvailable < recoverThreshold) {
-          // Grow to 105% (a bit of wiggle room)
-          const targetGrowthAmount = (1.05 * server.moneyMax) / (server.moneyAvailable + 1);
-          const growThreads = Math.ceil(ns.growthAnalyze(candidate, targetGrowthAmount + 0.05));
-          const growSecIncrease = growThreads * GROW_THREAD_SEC_INCREASE;
+      if (server.moneyAvailable < recoverThreshold) {
+        // Grow to 105% (a bit of wiggle room)
+        const targetGrowthAmount = (1.05 * server.moneyMax) / (server.moneyAvailable + 1);
+        const growThreads = Math.ceil(ns.growthAnalyze(candidate, targetGrowthAmount + 0.05));
+        const growSecIncrease = growThreads * GROW_THREAD_SEC_INCREASE;
 
-          // Weaken to min difficulty + enough to cover for grow
-          const secToWeaken = server.hackDifficulty - server.minDifficulty + growSecIncrease;
-          const weakenThreads = Math.ceil(secToWeaken / WEAKEN_THREAD_SEC_DECREASE);
+        // Weaken to min difficulty + enough to cover for grow
+        const secToWeaken = server.hackDifficulty - server.minDifficulty + growSecIncrease;
+        const weakenThreads = Math.ceil(secToWeaken / WEAKEN_THREAD_SEC_DECREASE);
 
-          const weakenTime = ns.getWeakenTime(candidate);
-          minWeakenTimes[candidates] = weakenTime;
+        const weakenTime = ns.getWeakenTime(candidate);
+        minWeakenTimes[candidates] = weakenTime;
 
-          executor.allocate(candidate, { weakenThreads, growThreads });
-          executor.print(ns, log, candidate, { toast: 'warning', prefix: 'Hack: recovering:' });
-          executor.schedule(ns, candidate, weakenTime);
+        executor.allocate(candidate, { weakenThreads, growThreads });
+        executor.print(ns, log, candidate, { toast: 'warning', prefix: 'Hack: recovering:' });
+        executor.schedule(ns, candidate, weakenTime);
 
-          state.waitUntil[candidate] = Date.now() + weakenTime + TIMING_MARGIN;
-        }
-        state.initialized[candidate] = true;
+        state.waitUntil[candidate] = Date.now() + weakenTime + TIMING_MARGIN;
       } else {
         // Compute how to get N% and restore it in 1 weaken duration
         const targetHackAmount = server.moneyMax * targetMoneyRatio;
