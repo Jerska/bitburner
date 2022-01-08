@@ -364,6 +364,6 @@ export async function main(ns) {
     }
 
     state.maxTiming = executor.getMaxTiming();
-    await upsertData(ns, 'hackState', newState);
+    await upsertData(ns, 'hackState', state);
   });
 }
