@@ -59,7 +59,7 @@ export async function main(ns) {
           }
           continue;
         }
-        runningUntil[host] = p ? p.args[2] : 0;
+        runningUntil[host] = running?.args?.[2] ?? 0;
       }
 
       if (kill) {
