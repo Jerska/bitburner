@@ -4,9 +4,10 @@
  *
  * Options:
  *   -d     Daemon mode: automatically refreshes candidates every 10s
+ *   -w     Watch mode: like daemon mode, but prints to terminal output
  *   -r			Read-only: do not override the global candidates list.
  */
-const USAGE = 'candidates [-d][-r] [<amount>]';
+const USAGE = 'candidates [-d][-r][-w] [<amount>]';
 
 import { parseArgs } from './utils.args.js';
 import { readData, upsertData } from './utils.data.js';
@@ -21,10 +22,14 @@ export async function main(ns) {
 
   const { args, opts } = parseArgs(ns, { minArgs: 0, maxArgs: 1, USAGE });
   const nbCandidates = args[0] ? parseInt(args[0], 10) : DEFAULT_CANDIDATES;
-  const isDaemon = opts.d;
+  const isDaemon = opts.d || opts.w;
+  const daemonPrintTerminal = opts.w;
   const readonly = opts.r;
 
-  const runner = createRunner(ns, isDaemon, { sleepDuration: DAEMON_RUN_EVERY });
+  const runner = createRunner(ns, isDaemon, {
+    daemonPrintTerminal,
+    sleepDuration: DAEMON_RUN_EVERY,
+  });
   await runner(async ({ log }) => {
     const player = readData(ns, 'player');
     let candidates = getServers(ns);

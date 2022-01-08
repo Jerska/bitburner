@@ -1,6 +1,6 @@
-export function createLogger(ns, { isDaemon = false } = {}) {
+export function createLogger(ns, { isDaemon = false, daemonPrintTerminal = false } = {}) {
   return function log(msg, { toast = null } = {}) {
-    if (isDaemon) {
+    if (isDaemon && !daemonPrintTerminal) {
       ns.print(msg);
       if (toast !== null) ns.toast(msg, toast);
     } else {
@@ -9,9 +9,9 @@ export function createLogger(ns, { isDaemon = false } = {}) {
   };
 }
 
-export function createErrorLogger(ns, { isDaemon = false } = {}) {
+export function createErrorLogger(ns, { isDaemon = false, daemonPrintTerminal = false } = {}) {
   return function logError(msg, { alert = false } = {}) {
-    if (isDaemon) {
+    if (isDaemon && !daemonPrintTerminal) {
       ns.print(msg);
       ns.toast(msg, 'error');
     } else {
