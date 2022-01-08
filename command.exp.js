@@ -22,7 +22,7 @@ const EXP_SCRIPT_RAM = 1.8;
 let i = 0;
 
 function isExpScript(p) {
-  if (p.filesname !== EXP_SCRIPT) return false;
+  if (p.filename !== EXP_SCRIPT) return false;
   if (p.args.length < 3) return false;
   if (!String(p.args[1]).startsWith('exp-')) return false;
   return true;
