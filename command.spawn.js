@@ -141,12 +141,12 @@ class Executor {
     while (weakenThreads > 0) {
       const nbCores = this._addWeakenThread(candidate);
       if (nbCores === 0) return;
-      weakenThreads -= nbCores;
+      weakenThreads -= 1; // FIXME: handle cores
     }
     while (growThreads > 0) {
       const nbCores = this._addGrowThread(candidate);
       if (nbCores === 0) return;
-      growThreads -= nbCores;
+      growThreads -= 1; // FIXME: handle cores
     }
     while (hackThreads > 0) {
       const couldHack = this._addHackThread(candidate);
