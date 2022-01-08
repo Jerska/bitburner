@@ -15,9 +15,10 @@ import { createRunner } from './utils.runner.js';
 import { getHosts, getServersMap } from './utils.servers.js';
 
 const BASE_HOST = 'home';
-const DAEMON_RUN_EVERY = 1000;
 const EXP_SCRIPT = 'script.weaken.js';
 const EXP_SCRIPT_RAM = 1.8;
+const TIME_MARGIN = 1000;
+const DAEMON_RUN_EVERY = 1000;
 
 let i = 0;
 
@@ -91,7 +92,7 @@ export async function main(ns) {
       const nbThreads = Math.floor(ram / EXP_SCRIPT_RAM);
       if (nbThreads === 0) continue;
       const endAt = Math.ceil(Date.now() + weakenTime);
-      runningUntil[host] = endAt;
+      runningUntil[host] = endAt + TIME_MARGIN;
       ns.exec(EXP_SCRIPT, host, nbThreads, targetHost, `exp-${++i}`, endAt);
       log(`Running exp script on ${host} with ${nbThreads}.`);
     }
