@@ -32,7 +32,7 @@ export async function main(ns) {
     return;
   }
 
-  const runner = createRunner(ns, isDaemon, {
+  const runner = createRunner(ns, isDaemon || isWatchMode, {
     daemonPrintTerminal: isWatchMode,
     sleepDuration: isWatchMode ? WATCH_RUN_EVERY : DAEMON_RUN_EVERY,
   });
