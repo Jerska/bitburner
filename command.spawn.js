@@ -304,7 +304,7 @@ export async function main(ns) {
 
     for (const candidate of candidates) {
       if (state.waitUntil && (state.waitUntil[candidate] ?? 0) > Date.now()) continue;
-      if (threadAllowances[candidate] < 3) return;
+      if (threadAllowances[candidate] < 3) continue;
 
       const server = serversMap[candidate];
 
