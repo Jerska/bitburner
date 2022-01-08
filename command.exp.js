@@ -50,14 +50,16 @@ export async function main(ns) {
       // Check existing instances and optionally kill them
       for (const host of getHosts(ns)) {
         const running = ns.ps(host).find((p) => isExpScript(p));
-        if (Boolean(running) && kill) {
-          const success = ns.kill(running.filename, host, ...running.args);
-          if (success) {
-            log(`* Killed exp script on ${host}`);
-          } else {
-            logError(`* [Error] Could not kill exp script on ${host}`);
+        if (kill) {
+          if (Boolean(running)) {
+            const success = ns.kill(running.filename, host, ...running.args);
+            if (success) {
+              log(`* Killed exp script on ${host}`);
+            } else {
+              logError(`* [Error] Could not kill exp script on ${host}`);
+            }
+            continue;
           }
-          continue;
         }
         runningUntil[host] = running?.args?.[2] ?? 0;
       }
