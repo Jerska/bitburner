@@ -182,6 +182,13 @@ class Executor {
       ns.exec(WEAKEN_SCRIPT, runHost, nbThreads, candidate, Date.now(), `spawn-${++this.jobId}`);
     }
 
+    if (totalNbThreads > 0) {
+      this.threadResets[candidate].push({
+        time: Date.now() + weakenTime + TIMING_MARGIN,
+        nbThreads: totalNbThreads,
+      });
+    }
+
     return totalNbThreads;
   }
 
