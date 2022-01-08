@@ -24,11 +24,13 @@ const WEAKEN_THREAD_SEC_DECREASE = 0.05;
 const GROW_THREAD_SEC_INCREASE = 0.004;
 const HACK_THREAD_SEC_INCREASE = 0.002;
 
-const GROWTH_MARGIN_FACTOR = 0.1;
+const TRIGGER_RECOVER_FACTOR = 4; // If the money gets ever under 4x hack amount, stop what we're doing and try recovering
+const GROWTH_MARGIN_FACTOR = 1.5;
+const WEAKEN_MARGIN_FACTOR = 1.2;
 
-const MARGIN_BETWEEN_ACTIONS = 500;
+const TIMING_MARGIN = 20;
 
-const DAEMON_RUN_EVERY = MARGIN_BETWEEN_ACTIONS * 4;
+const DAEMON_RUN_EVERY = 100;
 
 function computeThreadAllowances(servers, candidates, ramAllowanceFactor) {
   const totalRam = servers.reduce((res, s) => {
@@ -135,68 +137,52 @@ class Executor {
     }
   }
 
-  addWeakenThread(host) {
-    const server = this._findAvailableServer({ favorCores: true });
-    if (!server) return 0;
-    const threadAllowed = this.threadAllowances[host] - this.threadUsed[host];
-    if (threadAllowed < 1) return 0;
-    server.threadAvailable -= 1;
-    server.weakenThreads[host] += 1;
-    this.threadUsed[host] += 1;
-    return server.cpuCores;
+  allocate({ weakenThreads = 0, growThreads = 0, hackThreads = 0 }) {
+    while (weakenThreads > 0) {
+      const nbCores = this._addWeakenThread(candidate);
+      if (nbCores === 0) return;
+      weakenThreadsToAdd -= nbCores;
+    }
+    while (growThreads > 0) {
+      const nbCores = this._addGrowThread(candidate);
+      if (nbCores === 0) return;
+      growThreads -= nbCores;
+    }
+    while (hackThreads > 0) {
+      const couldHack = this._addHackThread(candidate);
+      if (!couldHack) return;
+      --hackThreads;
+    }
   }
 
-  addGrowThread(host) {
-    const server = this._findAvailableServer({ favorCores: true });
-    if (!server) return 0;
-    const threadAllowed = this.threadAllowances[host] - this.threadUsed[host];
-    if (threadAllowed < 1) return 0;
-    server.threadAvailable -= 1;
-    server.growThreads[host] += 1;
-    this.threadUsed[host] += 1;
-    return server.cpuCores;
-  }
-
-  addHackThread(host) {
-    const server = this._findAvailableServer({ favorCores: false });
-    if (!server) return 0;
-    const threadAllowed = this.threadAllowances[host] - this.threadUsed[host];
-    if (threadAllowed < 1) return 0;
-    server.threadAvailable -= 1;
-    server.hackThreads[host] += 1;
-    this.threadUsed[host] += 1;
-    return 1;
-  }
-
-  schedule(ns, host) {
+  schedule(ns, host, weakenTime) {
     let totalNbThreads = 0;
-    let targetTime = Math.round(Date.now() + ns.getWeakenTime(host));
+    const stepTime = Math.floor(weakenTime / 4);
+    const growStart = Date.now() + stepTime - TIMING_MARGIN;
+    const hackStart = Date.now() + 3 * stepTime - 2 * TIMING_MARGIN;
+
     for (const [runHost, server] of Object.entries(this.serversMap)) {
       const nbThreads = server.hackThreads[host] ?? 0;
       if (nbThreads === 0) continue;
-      totalNbThreads -= nbThreads;
-      ns.exec(HACK_SCRIPT, runHost, nbThreads, host, targetTime, `spawn-${++this.jobId}`);
+      totalNbThreads += nbThreads;
+      ns.exec(HACK_SCRIPT, runHost, nbThreads, host, hackStart, `spawn-${++this.jobId}`);
     }
 
-    targetTime += MARGIN_BETWEEN_ACTIONS;
     for (const [runHost, server] of Object.entries(this.serversMap)) {
       const nbThreads = server.growThreads[host] ?? 0;
       if (nbThreads === 0) continue;
-      totalNbThreads -= nbThreads;
-      ns.exec(GROW_SCRIPT, runHost, nbThreads, host, targetTime, `spawn-${++this.jobId}`);
+      totalNbThreads += nbThreads;
+      ns.exec(GROW_SCRIPT, runHost, nbThreads, host, growStart, `spawn-${++this.jobId}`);
     }
 
-    targetTime += MARGIN_BETWEEN_ACTIONS;
     for (const [runHost, server] of Object.entries(this.serversMap)) {
       const nbThreads = server.weakenThreads[host] ?? 0;
       if (nbThreads === 0) continue;
-      totalNbThreads -= nbThreads;
-      ns.exec(WEAKEN_SCRIPT, runHost, nbThreads, host, targetTime, `spawn-${++this.jobId}`);
+      totalNbThreads += nbThreads;
+      ns.exec(WEAKEN_SCRIPT, runHost, nbThreads, host, Date.now(), `spawn-${++this.jobId}`);
     }
 
-    targetTime += MARGIN_BETWEEN_ACTIONS;
-    this.threadResets[host].push({ time: targetTime, nbThreads: totalNbThreads });
-    return targetTime;
+    return totalNbThreads;
   }
 
   print(ns, log, host, { verbose = false, toast = null, prefix = '' } = {}) {
@@ -235,6 +221,39 @@ class Executor {
     return newState;
   }
 
+  _addWeakenThread(host) {
+    const server = this._findAvailableServer({ favorCores: true });
+    if (!server) return 0;
+    const threadAllowed = this.threadAllowances[host] - this.threadUsed[host];
+    if (threadAllowed < 1) return 0;
+    server.threadAvailable -= 1;
+    server.weakenThreads[host] += 1;
+    this.threadUsed[host] += 1;
+    return server.cpuCores;
+  }
+
+  _addGrowThread(host) {
+    const server = this._findAvailableServer({ favorCores: true });
+    if (!server) return 0;
+    const threadAllowed = this.threadAllowances[host] - this.threadUsed[host];
+    if (threadAllowed < 1) return 0;
+    server.threadAvailable -= 1;
+    server.growThreads[host] += 1;
+    this.threadUsed[host] += 1;
+    return server.cpuCores;
+  }
+
+  _addHackThread(host) {
+    const server = this._findAvailableServer({ favorCores: false });
+    if (!server) return 0;
+    const threadAllowed = this.threadAllowances[host] - this.threadUsed[host];
+    if (threadAllowed < 1) return 0;
+    server.threadAvailable -= 1;
+    server.hackThreads[host] += 1;
+    this.threadUsed[host] += 1;
+    return 1;
+  }
+
   _findAvailableServer({ favorCores }) {
     const sorted = favorCores ? this.coresSortedServers : this.hackSortedServers;
     return sorted.find((s) => s.threadAvailable > 0);
@@ -258,7 +277,10 @@ export async function main(ns) {
   const runner = createRunner(ns, isDaemon, { sleepDuration: DAEMON_RUN_EVERY });
   await runner(async ({ firstRun, log, logError, stop }) => {
     let state = readData(ns, 'hackState') ?? {};
-    if (firstRun && (state.maxTiming ?? 0) > Date.now()) {
+    state.maxTiming ??= 0;
+    state.waitUntil ??= {};
+
+    if (firstRun && state.maxTiming > Date.now()) {
       // prettier-ignore
       logError(`Jobs from previous spawn might still be running (maxTiming = ${(state.maxTiming ?? 0)})\nRun \`ka\` first, then re-run spawn`, { alert: true });
       stop();
@@ -270,6 +292,7 @@ export async function main(ns) {
 
     const threadAllowances = computeThreadAllowances(servers, candidates, ramAllowanceFactor);
     executor.configure(serversMap, threadAllowances);
+    const minWeakenTimes = {};
 
     await setupScripts(ns, Object.keys(serversMap));
 
@@ -281,71 +304,55 @@ export async function main(ns) {
       executor.reset(candidate);
 
       // First weaken to min and grow the server to max
-      if (server.moneyAvailable < (1 - targetMoneyRatio) * server.moneyMax) {
-        let secToWeaken = server.hackDifficulty - server.minDifficulty;
-
-        // Weaken to min difficulty
-        while (secToWeaken > 0) {
-          const nbCores = executor.addWeakenThread(candidate);
-          if (nbCores === 0) break;
-          secToWeaken -= WEAKEN_THREAD_SEC_DECREASE * nbCores;
-        }
-
+      const recoverThreshold = (1 - TRIGGER_RECOVER_FACTOR * targetMoneyRatio) * server.moneyMax;
+      if (server.moneyAvailable < recoverThreshold) {
         // Grow to 105% (a bit of wiggle room)
         const targetGrowthAmount = (1.05 * server.moneyMax) / (server.moneyAvailable + 1);
-        let growThreadsToAdd = Math.ceil(ns.growthAnalyze(candidate, targetGrowthAmount + 0.05));
-        while (growThreadsToAdd > 0) {
-          if (secToWeaken > 0) {
-            const nbCores = executor.addWeakenThread(candidate);
-            if (nbCores === 0) break;
-            secToWeaken -= WEAKEN_THREAD_SEC_DECREASE * nbCores;
-          }
-          const nbCores = executor.addGrowThread(candidate);
-          if (nbCores === 0) break;
-          growThreadsToAdd -= nbCores;
-          secToWeaken += GROW_THREAD_SEC_INCREASE * nbCores;
-        }
+        const growThreads = Math.ceil(ns.growthAnalyze(candidate, targetGrowthAmount + 0.05));
+        const growSecIncrease = growThreads * GROW_THREAD_SEC_INCREASE;
 
-        executor.print(ns, log, candidate, { toast: 'info', prefix: 'Hack: initializing:' });
-        const waitUntil = executor.schedule(ns, candidate);
-        state.waitUntil ??= {};
-        state.waitUntil[candidate] = waitUntil;
+        // Weaken to min difficulty + enough to cover for grow
+        const secToWeaken = server.hackDifficulty - server.minDifficulty + growSecIncrease;
+        const weakenThreads = Math.ceil(secToWeaken / WEAKEN_THREAD_SEC_DECREASE);
+
+        const weakenTime = ns.getWeakenTime(candidate);
+        minWeakenTimes[candidates] = weakenTime;
+
+        executor.allocate({ weakenThreads, growThreads });
+        executor.print(ns, log, candidate, { toast: 'warn', prefix: 'Hack: recovering:' });
+        executor.schedule(ns, candidate, weakenTime);
+
+        state.waitUntil[candidate] = Date.now() + weakenTime + TIMING_MARGIN;
       } else {
+        // Compute how to get N% and restore it in 1 weaken duration
         const targetHackAmount = server.moneyMax * targetMoneyRatio;
-        const targetGrowthAmount = (1 + GROWTH_MARGIN_FACTOR) / (1 - targetMoneyRatio);
-        let hackThreadsToAdd = Math.floor(ns.hackAnalyzeThreads(candidate, targetHackAmount));
-        let growThreadsToAdd = Math.ceil(ns.growthAnalyze(candidate, targetGrowthAmount + 0.05));
-        const hackSecIncrease = hackThreadsToAdd * HACK_THREAD_SEC_INCREASE;
-        const growSecIncrease = growThreadsToAdd * GROW_THREAD_SEC_INCREASE;
+        const targetGrowthAmount = GROWTH_MARGIN_FACTOR / (1 - targetMoneyRatio);
+        const hackThreads = Math.floor(ns.hackAnalyzeThreads(candidate, targetHackAmount));
+        const theoricalGrowThreads = Math.ceil(ns.growthAnalyze(candidate, targetGrowthAmount));
+        const growThreads = theoricalGrowThreads * GROWTH_MARGIN_FACTOR;
+        const hackSecIncrease = hackThreads * HACK_THREAD_SEC_INCREASE;
+        const growSecIncrease = growThreads * GROW_THREAD_SEC_INCREASE;
         const secIncrease = hackSecIncrease + growSecIncrease;
-        let weakenThreadsToAdd = Math.ceil(secIncrease / WEAKEN_THREAD_SEC_DECREASE);
-        let stop = false;
-        while (weakenThreadsToAdd > 0) {
-          const nbCores = executor.addWeakenThread(candidate);
-          if (nbCores === 0) {
-            stop = true;
-            break;
-          }
-          weakenThreadsToAdd -= nbCores;
-        }
-        while (!stop && growThreadsToAdd > 0) {
-          const nbCores = executor.addGrowThread(candidate);
-          if (nbCores === 0) {
-            stop = true;
-            break;
-          }
-          growThreadsToAdd -= nbCores;
-        }
-        while (!stop && hackThreadsToAdd > 0) {
-          const couldHack = executor.addHackThread(candidate);
-          if (!couldHack) break;
-          --hackThreadsToAdd;
-        }
+        const theoricalWeakenThreads = Math.ceil(secIncrease / WEAKEN_THREAD_SEC_DECREASE);
+        const weakenThreads = theoricalWeakenThreads * WEAKEN_MARGIN_FACTOR;
 
+        const currWeakenTime = ns.getWeakenTime(candidate);
+        const weakenTime = Math.min(minWeakenTimes[candidate] ?? Infinity, currWeakenTime);
+        minWeakenTimes[candidate] = weakenTime;
+
+        const nbThreadsPerBatch = hackThreads + growThreads + weakenThreads;
+        const nbTotalThreads = threadAllowances[candidate];
+        const nbBatches = Math.floor(nbTotalThreads / nbThreadsPerBatch);
+        const timeUntilNextRun = Math.ceil(weakenTime / nbBatches) + 10; // Extra 10ms to make sure we don't overalign
+
+        executor.allocate({ weakenThreads, growThreads, hackThreads });
         executor.print(ns, log, candidate);
-        executor.schedule(ns, candidate);
-        state.waitUntil ??= {};
-        state.waitUntil[candidate] = 5 * MARGIN_BETWEEN_ACTIONS;
+        const nbThreadsAllocated = executor.schedule(ns, candidate, weakenTime);
+
+        // prettier-ignore
+        log(`Scheduling batch for ${candidate}: ${nbThreadsAllocated}, next batch in: ${timeUntilNextRun}ms`);
+
+        state.waitUntil[candidate] = Date.now() + timeUntilNextRun;
       }
     }
 
