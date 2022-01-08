@@ -220,7 +220,7 @@ class Executor {
     let maxTiming = 0;
     for (const resets of Object.values(this.threadResets)) {
       for (const { time } of resets) {
-        if (typeof time !== number) throw new Error('Missing time in threadResets');
+        if (typeof time !== 'number') throw new Error('Missing time in threadResets');
         maxTiming = Math.max(maxTiming, time);
       }
     }
