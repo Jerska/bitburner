@@ -76,9 +76,9 @@ class Executor {
 
     this.threadAllowances = {};
     this.threadUsed = {};
-    this.threadResets = {};
 
     this.jobId = 0;
+    this.maxTiming = 0;
   }
 
   configure(serversMap, threadAllowances) {
@@ -121,21 +121,6 @@ class Executor {
       server.weakenThreads[candidate] = 0;
       server.growThreads[candidate] = 0;
       server.hackThreads[candidate] = 0;
-    }
-
-    this.threadResets[candidate] ??= [];
-    let nbResetShifts = 0;
-    for (const { time, nbThreads } of this.threadResets[candidate]) {
-      if (time > Date.now()) break;
-      this.threadUsed[candidate] -= nbThreads;
-      if (this.threadUsed[candidate] < 0) {
-        ns.alert(`threadUsed[${candidate}] < 0`);
-        ns.exit();
-      }
-      nbResetShifts += 1;
-    }
-    for (let i = 0; i < nbResetShifts; ++i) {
-      this.threadResets[candidate].shift();
     }
   }
 
@@ -185,10 +170,7 @@ class Executor {
     }
 
     if (totalNbThreads > 0) {
-      this.threadResets[candidate].push({
-        time: Date.now() + weakenTime + TIMING_MARGIN,
-        nbThreads: totalNbThreads,
-      });
+      this.maxTiming = Math.max(this.maxTiming, Date.now() + weakenTime + 4 * TIMING_MARGIN);
     }
 
     return totalNbThreads;
@@ -219,14 +201,7 @@ class Executor {
   }
 
   getMaxTiming() {
-    let maxTiming = 0;
-    for (const resets of Object.values(this.threadResets)) {
-      for (const { time } of resets) {
-        if (typeof time !== 'number') throw new Error('Missing time in threadResets');
-        maxTiming = Math.max(maxTiming, time);
-      }
-    }
-    return maxTiming;
+    return this.maxTiming;
   }
 
   _addWeakenThread(candidate) {
