@@ -141,7 +141,7 @@ class Executor {
     while (weakenThreads > 0) {
       const nbCores = this._addWeakenThread(candidate);
       if (nbCores === 0) return;
-      weakenThreadsToAdd -= nbCores;
+      weakenThreads -= nbCores;
     }
     while (growThreads > 0) {
       const nbCores = this._addGrowThread(candidate);
