@@ -28,6 +28,8 @@ const TRIGGER_RECOVER_FACTOR = 4; // If the money gets ever under 4x hack amount
 const GROWTH_MARGIN_FACTOR = 1.5;
 const WEAKEN_MARGIN_FACTOR = 1.2;
 
+const MIN_RAM_PER_CANDIDATE_RATIO = 0.01;
+
 const TIMING_MARGIN = 20;
 
 const DAEMON_RUN_EVERY = 100;
@@ -39,11 +41,12 @@ function computeThreadAllowances(servers, candidates, ramAllowanceFactor) {
     return res + Math.max(availableRam, 0);
   }, 0);
   let ramAvailable = totalRam * ramAllowanceFactor;
+  const minRamAllowed = Math.floor(ramAvailable / MIN_RAM_PER_CANDIDATE_RATIO);
   const res = {};
   for (const candidate of candidates) {
-    const ramAllowed = Math.floor(ramAvailable / 2);
-    res[candidate] = Math.floor(ramAllowed / SCRIPT_RAM_USAGE);
-    ramAvailable -= ramAllowed;
+    const ramAllowed = Math.max(minRamAllowed, Math.floor(ramAvailable / 2));
+    res[candidate] = Math.max(Math.floor(ramAllowed / SCRIPT_RAM_USAGE));
+    ramAvailable -= ramAllowed; // Might end up negative because of min
   }
   return res;
 }
