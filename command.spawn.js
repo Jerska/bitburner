@@ -298,6 +298,7 @@ export async function main(ns) {
 
     for (const candidate of candidates) {
       if (state.waitUntil && (state.waitUntil[candidate] ?? 0) > Date.now()) continue;
+      if (threadAllowances[candidate] < 3) return;
 
       const server = serversMap[candidate];
 
@@ -343,7 +344,7 @@ export async function main(ns) {
         const nbThreadsPerBatch = hackThreads + growThreads + weakenThreads;
         const nbTotalThreads = threadAllowances[candidate];
         const nbBatches = Math.floor(nbTotalThreads / nbThreadsPerBatch);
-        const timeUntilNextRun = Math.ceil(weakenTime / nbBatches) + 10; // Extra 10ms to make sure we don't overalign
+        const timeUntilNextRun = Math.ceil(weakenTime / nbBatches);
 
         executor.allocate(candidate, { weakenThreads, growThreads, hackThreads });
         executor.print(ns, log, candidate);
