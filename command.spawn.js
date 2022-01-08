@@ -40,7 +40,7 @@ function computeThreadAllowances(servers, candidates, ramAllowanceFactor) {
     return res + Math.max(availableRam, 0);
   }, 0);
   let ramAvailable = totalRam * ramAllowanceFactor;
-  const minRamAllowed = Math.floor(ramAvailable / MIN_RAM_PER_CANDIDATE_RATIO);
+  const minRamAllowed = Math.floor(ramAvailable * MIN_RAM_PER_CANDIDATE_RATIO);
   const res = {};
   for (const candidate of candidates) {
     const ramAllowed = Math.max(minRamAllowed, Math.floor(ramAvailable / 2));
