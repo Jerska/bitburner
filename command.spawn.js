@@ -266,7 +266,7 @@ export async function main(ns) {
   const { args, opts } = parseArgs(ns, { minArgs: 0, maxArgs: 2, USAGE });
   const isDaemon = opts.d;
 
-  const targetMoneyRatio = parseFloat(args[0] ?? '0.05');
+  const targetMoneyRatio = parseFloat(args[0] ?? '0.10');
   const ramAllowanceFactor = parseFloat(args[1] ?? '1.00');
 
   const executor = new Executor();
