@@ -30,9 +30,8 @@ const WEAKEN_MARGIN_FACTOR = 1.2;
 
 const MIN_RAM_PER_CANDIDATE_RATIO = 0.01;
 
-const TIMING_MARGIN = 20;
-
-const DAEMON_RUN_EVERY = 100;
+const TIMING_MARGIN = 100;
+const DAEMON_RUN_EVERY = 1000;
 
 function computeThreadAllowances(servers, candidates, ramAllowanceFactor) {
   const totalRam = servers.reduce((res, s) => {
@@ -275,7 +274,7 @@ export async function main(ns) {
   const { args, opts } = parseArgs(ns, { minArgs: 0, maxArgs: 2, USAGE });
   const isDaemon = opts.d;
 
-  const targetMoneyRatio = parseFloat(args[0] ?? '0.10');
+  const targetMoneyRatio = parseFloat(args[0] ?? '0.20');
   const ramAllowanceFactor = parseFloat(args[1] ?? '1.00');
 
   const executor = new Executor();
@@ -354,7 +353,8 @@ export async function main(ns) {
 
         const nbThreadsPerBatch = hackThreads + growThreads + weakenThreads;
         const nbTotalThreads = threadAllowances[candidate];
-        const nbBatches = Math.floor(nbTotalThreads / nbThreadsPerBatch);
+        const maxNbBatches = Math.floor(weakenTime / DAEMON_RUN_EVERY);
+        const nbBatches = Math.min(maxNbBatches, Math.floor(nbTotalThreads / nbThreadsPerBatch));
         if (nbBatches === 0) continue;
 
         const timeUntilNextRun = Math.ceil(weakenTime / nbBatches);
