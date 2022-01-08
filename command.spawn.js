@@ -37,7 +37,7 @@ function computeThreadAllowances(servers, candidates, ramAllowanceFactor) {
     let availableRam = s.maxRam;
     if (s.hostname === BASE_HOST) availableRam -= 64;
     return res + Math.max(availableRam, 0);
-  });
+  }, 0);
   let ramAvailable = totalRam * ramAllowanceFactor;
   const res = {};
   for (const candidate of candidates) {
