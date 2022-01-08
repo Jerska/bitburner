@@ -78,7 +78,6 @@ class Executor {
     this.threadUsed = {};
 
     this.jobId = 0;
-    this.maxTiming = 0;
   }
 
   configure(serversMap, threadAllowances) {
@@ -169,10 +168,6 @@ class Executor {
       ns.exec(WEAKEN_SCRIPT, runHost, nbThreads, candidate, Date.now(), `spawn-${++this.jobId}`);
     }
 
-    if (totalNbThreads > 0) {
-      this.maxTiming = Math.max(this.maxTiming, Date.now() + weakenTime + 4 * TIMING_MARGIN);
-    }
-
     return totalNbThreads;
   }
 
@@ -198,10 +193,6 @@ class Executor {
         log(row);
       }
     }
-  }
-
-  getMaxTiming() {
-    return this.maxTiming;
   }
 
   _addWeakenThread(candidate) {
@@ -260,14 +251,7 @@ export async function main(ns) {
   const runner = createRunner(ns, isDaemon, { sleepDuration: DAEMON_RUN_EVERY });
   await runner(async ({ firstRun, log, logError, stop }) => {
     let state = readData(ns, 'hackState') ?? {};
-    state.maxTiming ??= 0;
     state.waitUntil ??= {};
-
-    if (firstRun && state.maxTiming > Date.now()) {
-      // prettier-ignore
-      logError(`Jobs from previous spawn might still be running (maxTiming = ${(state.maxTiming ?? 0)})\nRun \`ka\` first, then re-run spawn`, { alert: true });
-      stop();
-    }
 
     const serversMap = getServersMap(ns);
     const servers = Object.values(serversMap);
@@ -343,7 +327,6 @@ export async function main(ns) {
       }
     }
 
-    state.maxTiming = executor.getMaxTiming();
     await upsertData(ns, 'hackState', state);
   });
 }
