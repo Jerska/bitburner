@@ -30,8 +30,8 @@ const WEAKEN_MARGIN_FACTOR = 1.2;
 
 const MIN_RAM_PER_CANDIDATE_RATIO = 0.01;
 
-const TIMING_MARGIN = 80;
-const DAEMON_RUN_EVERY = 500;
+const TIMING_MARGIN = 40;
+const DAEMON_RUN_EVERY = 200;
 
 function computeThreadAllowances(servers, candidates, ramAllowanceFactor) {
   const totalRam = servers.reduce((res, s) => {
