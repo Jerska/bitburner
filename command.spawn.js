@@ -320,7 +320,7 @@ export async function main(ns) {
         minWeakenTimes[candidates] = weakenTime;
 
         executor.allocate(candidate, { weakenThreads, growThreads });
-        executor.print(ns, log, candidate, { toast: 'warn', prefix: 'Hack: recovering:' });
+        executor.print(ns, log, candidate, { toast: 'warning', prefix: 'Hack: recovering:' });
         executor.schedule(ns, candidate, weakenTime);
 
         state.waitUntil[candidate] = Date.now() + weakenTime + TIMING_MARGIN;
