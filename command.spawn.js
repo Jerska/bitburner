@@ -25,7 +25,7 @@ const GROW_THREAD_SEC_INCREASE = 0.004;
 const HACK_THREAD_SEC_INCREASE = 0.002;
 
 const TRIGGER_RECOVER_FACTOR = 4; // If the money gets ever under 4x hack amount, stop what we're doing and try recovering
-const GROWTH_MARGIN_FACTOR = 1.5;
+const GROWTH_MARGIN_FACTOR = 2;
 const WEAKEN_MARGIN_FACTOR = 1.2;
 
 const MIN_RAM_PER_CANDIDATE_RATIO = 0.01;
