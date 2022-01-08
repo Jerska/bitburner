@@ -216,16 +216,15 @@ class Executor {
     }
   }
 
-  async saveState(ns, state = {}) {
+  getMaxTiming() {
     let maxTiming = 0;
     for (const resets of Object.values(this.threadResets)) {
       for (const { time } of resets) {
+        if (typeof time !== number) throw new Error('Missing time in threadResets');
         maxTiming = Math.max(maxTiming, time);
       }
     }
-    const newState = { maxTiming, ...state };
-    await upsertData(ns, 'hackState', newState);
-    return newState;
+    return maxTiming;
   }
 
   _addWeakenThread(candidate) {
@@ -364,6 +363,7 @@ export async function main(ns) {
       }
     }
 
-    await executor.saveState(ns, state);
+    state.maxTiming = executor.getMaxTiming();
+    await upsertData(ns, 'hackState', newState);
   });
 }
