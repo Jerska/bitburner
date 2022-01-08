@@ -16,19 +16,25 @@ import { getServers } from './utils.servers.js';
 
 const DEFAULT_CANDIDATES = 40;
 const DAEMON_RUN_EVERY = 10 * 1000;
+const WATCH_RUN_EVERY = 1 * 1000;
 
 export async function main(ns) {
   ns.disableLog('ALL');
 
   const { args, opts } = parseArgs(ns, { minArgs: 0, maxArgs: 1, USAGE });
   const nbCandidates = args[0] ? parseInt(args[0], 10) : DEFAULT_CANDIDATES;
-  const isDaemon = opts.d || opts.w;
-  const daemonPrintTerminal = opts.w;
+  const isDaemon = opts.d;
+  const isWatchMode = opts.w;
   const readonly = opts.r;
 
+  if (isDaemon && isWatchMode) {
+    ns.tprint('-d & -w are incompatible, choose one or the other');
+    return;
+  }
+
   const runner = createRunner(ns, isDaemon, {
-    daemonPrintTerminal,
-    sleepDuration: DAEMON_RUN_EVERY,
+    daemonPrintTerminal: isWatchMode,
+    sleepDuration: isWatchMode ? WATCH_RUN_EVERY : DAEMON_RUN_EVERY,
   });
   await runner(async ({ log }) => {
     const player = readData(ns, 'player');
