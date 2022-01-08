@@ -12,7 +12,7 @@ const USAGE = 'exp [-d][-k] [<ratio>]';
 import { parseArgs } from './utils.args.js';
 import { readData } from './utils.data.js';
 import { createRunner } from './utils.runner.js';
-import { getServersMap } from './utils.servers.js';
+import { getHosts, getServersMap } from './utils.servers.js';
 
 const BASE_HOST = 'home';
 const DAEMON_RUN_EVERY = 1000;
@@ -20,6 +20,13 @@ const EXP_SCRIPT = 'script.weaken.js';
 const EXP_SCRIPT_RAM = 1.8;
 
 let i = 0;
+
+function isExpScript(p) {
+  if (p.filesname !== EXP_SCRIPT) return false;
+  if (p.args.length < 3) return false;
+  if (!String(p.args[1]).startsWith('exp-')) return false;
+  return true;
+}
 
 export async function main(ns) {
   ns.disableLog('ALL');
@@ -31,6 +38,36 @@ export async function main(ns) {
 
   const runner = createRunner(ns, isDaemon, { sleepDuration: DAEMON_RUN_EVERY });
   await runner(async ({ firstRun, log, logError, stop }) => {
+    const runningUntil = {};
+
+    if (firstRun) {
+      if (kill && isDaemon) {
+        logError(`Can't call exp with both -d and -k set.`, { alert: true });
+        stop();
+        return;
+      }
+
+      // Check existing instances and optionally kill them
+      for (const host of getHosts(ns)) {
+        const running = ns.ps(host).find((p) => isExpScript(p));
+        if (Boolean(running) && kill) {
+          const success = ns.kill(running.filename, host, ...running.args);
+          if (success) {
+            log(`* Killed exp script on ${host}`);
+          } else {
+            logError(`* [Error] Could not kill exp script on ${host}`);
+          }
+          continue;
+        }
+        runningUntil[host] = p ? p.args[2] : 0;
+      }
+
+      if (kill) {
+        stop();
+        return;
+      }
+    }
+
     // Find target server
     const candidates = readData(ns, 'candidates');
     if (!candidates || !candidates[0]) {
@@ -38,34 +75,22 @@ export async function main(ns) {
       return;
     }
     const targetHost = candidates[0];
+    const weakenTime = ns.getWeakenTime(targetHost);
 
     for (const [host, server] of Object.entries(getServersMap(ns))) {
+      if (runningUntil[host] > Date.now()) continue;
       // Make sure script exists
       if (firstRun || !ns.fileExists(EXP_SCRIPT, host)) {
         await ns.scp(EXP_SCRIPT, BASE_HOST, host);
-      }
-
-      // Get current existing script
-      const running = ns
-        .ps(host)
-        .find((p) => p.filename === EXP_SCRIPT && String(p.args[1]).startsWith('exp-'));
-      if (!kill && Boolean(running)) continue;
-      if (kill && !Boolean(running)) continue;
-      if (kill) {
-        const success = ns.kill(running.filename, host, ...running.args);
-        if (success) {
-          log(`* Killed exp script on ${host}`);
-        } else {
-          logError(`* [Error] Could not kill exp script on ${host}`);
-        }
-        continue;
       }
 
       // Run script
       const ram = Math.min(server.ramAvailable, server.maxRam * ratio);
       const nbThreads = Math.floor(ram / EXP_SCRIPT_RAM);
       if (nbThreads === 0) continue;
-      ns.exec(EXP_SCRIPT, host, nbThreads, targetHost, `exp-${++i}`);
+      const endAt = Math.ceil(Date.now() + weakenTime);
+      runningUntil[host] = endAt;
+      ns.exec(EXP_SCRIPT, host, nbThreads, targetHost, `exp-${++i}`, endAt);
       log(`Running exp script on ${host} with ${nbThreads}.`);
     }
   });
