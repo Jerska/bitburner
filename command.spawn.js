@@ -352,6 +352,8 @@ export async function main(ns) {
         const nbThreadsPerBatch = hackThreads + growThreads + weakenThreads;
         const nbTotalThreads = threadAllowances[candidate];
         const nbBatches = Math.floor(nbTotalThreads / nbThreadsPerBatch);
+        if (nbBatches === 0) continue;
+
         const timeUntilNextRun = Math.ceil(weakenTime / nbBatches);
 
         executor.allocate(candidate, { weakenThreads, growThreads, hackThreads });
