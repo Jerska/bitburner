@@ -137,7 +137,7 @@ class Executor {
     }
   }
 
-  allocate({ weakenThreads = 0, growThreads = 0, hackThreads = 0 }) {
+  allocate(candidate, { weakenThreads = 0, growThreads = 0, hackThreads = 0 }) {
     while (weakenThreads > 0) {
       const nbCores = this._addWeakenThread(candidate);
       if (nbCores === 0) return;
@@ -155,31 +155,31 @@ class Executor {
     }
   }
 
-  schedule(ns, host, weakenTime) {
+  schedule(ns, candidate, weakenTime) {
     let totalNbThreads = 0;
     const stepTime = Math.floor(weakenTime / 4);
     const growStart = Date.now() + stepTime - TIMING_MARGIN;
     const hackStart = Date.now() + 3 * stepTime - 2 * TIMING_MARGIN;
 
     for (const [runHost, server] of Object.entries(this.serversMap)) {
-      const nbThreads = server.hackThreads[host] ?? 0;
+      const nbThreads = server.hackThreads[candidate] ?? 0;
       if (nbThreads === 0) continue;
       totalNbThreads += nbThreads;
-      ns.exec(HACK_SCRIPT, runHost, nbThreads, host, hackStart, `spawn-${++this.jobId}`);
+      ns.exec(HACK_SCRIPT, runHost, nbThreads, candidate, hackStart, `spawn-${++this.jobId}`);
     }
 
     for (const [runHost, server] of Object.entries(this.serversMap)) {
-      const nbThreads = server.growThreads[host] ?? 0;
+      const nbThreads = server.growThreads[candidate] ?? 0;
       if (nbThreads === 0) continue;
       totalNbThreads += nbThreads;
-      ns.exec(GROW_SCRIPT, runHost, nbThreads, host, growStart, `spawn-${++this.jobId}`);
+      ns.exec(GROW_SCRIPT, runHost, nbThreads, candidate, growStart, `spawn-${++this.jobId}`);
     }
 
     for (const [runHost, server] of Object.entries(this.serversMap)) {
-      const nbThreads = server.weakenThreads[host] ?? 0;
+      const nbThreads = server.weakenThreads[candidate] ?? 0;
       if (nbThreads === 0) continue;
       totalNbThreads += nbThreads;
-      ns.exec(WEAKEN_SCRIPT, runHost, nbThreads, host, Date.now(), `spawn-${++this.jobId}`);
+      ns.exec(WEAKEN_SCRIPT, runHost, nbThreads, candidate, Date.now(), `spawn-${++this.jobId}`);
     }
 
     return totalNbThreads;
@@ -318,7 +318,7 @@ export async function main(ns) {
         const weakenTime = ns.getWeakenTime(candidate);
         minWeakenTimes[candidates] = weakenTime;
 
-        executor.allocate({ weakenThreads, growThreads });
+        executor.allocate(candidate, { weakenThreads, growThreads });
         executor.print(ns, log, candidate, { toast: 'warn', prefix: 'Hack: recovering:' });
         executor.schedule(ns, candidate, weakenTime);
 
@@ -345,7 +345,7 @@ export async function main(ns) {
         const nbBatches = Math.floor(nbTotalThreads / nbThreadsPerBatch);
         const timeUntilNextRun = Math.ceil(weakenTime / nbBatches) + 10; // Extra 10ms to make sure we don't overalign
 
-        executor.allocate({ weakenThreads, growThreads, hackThreads });
+        executor.allocate(candidate, { weakenThreads, growThreads, hackThreads });
         executor.print(ns, log, candidate);
         const nbThreadsAllocated = executor.schedule(ns, candidate, weakenTime);
 
