@@ -36,10 +36,10 @@ export async function main(ns) {
   const isDaemon = opts.d;
   const kill = opts.k;
 
+  const runningUntil = {};
+
   const runner = createRunner(ns, isDaemon, { sleepDuration: DAEMON_RUN_EVERY });
   await runner(async ({ firstRun, log, logError, stop }) => {
-    const runningUntil = {};
-
     if (firstRun) {
       if (kill && isDaemon) {
         logError(`Can't call exp with both -d and -k set.`, { alert: true });
