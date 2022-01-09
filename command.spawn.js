@@ -28,25 +28,44 @@ const TRIGGER_RECOVER_FACTOR = 3; // If the money gets ever under 4x hack amount
 const GROWTH_MARGIN_FACTOR = 2;
 const WEAKEN_MARGIN_FACTOR = 1.2;
 
-const MIN_RAM_PER_CANDIDATE_RATIO = 0.01;
+const MIN_THREADS_PER_CANDIDATE_RATIO = 0.01;
 
 const TIMING_MARGIN = 200;
 const DAEMON_RUN_EVERY = 1000;
 
 function computeThreadAllowances(servers, candidates, ramAllowanceFactor) {
-  const totalRam = servers.reduce((res, s) => {
-    let availableRam = s.maxRam;
-    if (s.hostname === BASE_HOST) availableRam -= 64;
-    return res + Math.max(availableRam, 0);
-  }, 0);
-  let ramAvailable = totalRam * ramAllowanceFactor;
-  const minRamAllowed = Math.floor(ramAvailable * MIN_RAM_PER_CANDIDATE_RATIO);
-  const res = {};
-  for (const candidate of candidates) {
-    const ramAllowed = Math.max(minRamAllowed, Math.floor(ramAvailable / 2));
-    res[candidate] = Math.max(Math.floor(ramAllowed / SCRIPT_RAM_USAGE));
-    ramAvailable -= ramAllowed; // Might end up negative because of min
+  // Compute total amount of threads available
+  let totalNbThreadsAllowed = 0;
+  for (const server of servers) {
+    let serverAllowedRam = server.maxRam * ramAllowanceFactor;
+    if (server.hostname === BASE_HOST) {
+      serverAllowedRam = Math.max(serverAllowedRam - 64, 0);
+    }
+    totalNbThreadsAllowed += Math.floor(allowedRam / SCRIPT_RAM_USAGE);
   }
+
+  const res = candidates.reduce((res, c) => ({ ...res, [c]: 0 }), {});
+  let nbThreadsRemaining = totalNbThreadsAllowed;
+
+  // Give MIN_THREADS_PER_CANDIDATE_RATIO to each candidate
+  const minNbThreadsCandidate = Math.floor(totalNbThreadsAllowed, MIN_THREADS_PER_CANDIDATE_RATIO);
+  for (const candidate of candidates) {
+    res[candidate] += Math.min(nbThreadsRemaining, minNbThreadsCandidate);
+    nbThreadsRemaining -= res[candidate];
+  }
+
+  // Give 1/2 of the remaining threads to the first candidate, then 1/4, 1/8, etc. to the next ones
+  for (const candidate of candidates) {
+    const nbThreadsRemaining = totalNbThreadsAllowed - nbThreadsUsed;
+    res[candidate] += Math.floor(nbThreadsRemaining / 2);
+    nbThreadsRemaining -= res[candidate];
+  }
+
+  // Give remaining threads to the first candidate
+  if (nbThreadsRemaining > 0 && candidates.length > 0) {
+    res[candidates[0]] += nbThreadsRemaining;
+  }
+
   return res;
 }
 
