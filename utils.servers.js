@@ -16,7 +16,7 @@ export function getServers(ns, { withoutHome = false, adminOnly = false } = {}) 
 
 export function getServersMap(ns, { withoutHome = false, adminOnly = false } = {}) {
   const res = {};
-  for (const [host, server] of readData(ns, 'servers')) {
+  for (const [host, server] of Object.entries(readData(ns, 'servers'))) {
     if (withoutHome && host === BASE_HOST) continue;
     if (adminOnly && !server.hasAdminRights) continue;
     res[host] = server;
