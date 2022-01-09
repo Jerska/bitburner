@@ -293,7 +293,7 @@ export async function main(ns) {
   await setupScripts(ns, hosts, { force: true });
 
   const runner = createRunner(ns, isDaemon, { sleepDuration: DAEMON_RUN_EVERY });
-  await runner(async ({ firstRun, log, logError, stop }) => {
+  await runner(async ({ log }) => {
     let state = readData(ns, 'hackState') ?? {};
     state.waitUntil ??= {};
 
