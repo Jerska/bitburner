@@ -151,6 +151,7 @@ class Executor {
     this.threadResets[candidate] ??= [];
     const newResets = [];
     for (const r of this.threadResets[candidate]) {
+      const { time, nbThreads } = r;
       if (time > Date.now()) {
         newResets.push(r);
         continue;
