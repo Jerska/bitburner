@@ -140,6 +140,21 @@ class Executor {
       server.growThreads[candidate] = 0;
       server.hackThreads[candidate] = 0;
     }
+
+    this.threadResets[candidate] ??= [];
+    const newResets = [];
+    for (const r of this.threadResets[candidate]) {
+      if (time > Date.now()) {
+        newResets.push(r);
+        continue;
+      }
+      this.threadUsed[candidate] -= nbThreads;
+      if (this.threadUsed[candidate] < 0) {
+        ns.alert(`threadUsed[${candidate}] < 0`);
+        ns.exit();
+      }
+    }
+    this.threadResets[candidate] = newResets;
   }
 
   allocate(candidate, { weakenThreads = 0, growThreads = 0, hackThreads = 0 }) {
@@ -185,6 +200,11 @@ class Executor {
       if (nbThreads === 0) continue;
       totalNbThreads += nbThreads;
       ns.exec(WEAKEN_SCRIPT, runHost, nbThreads, candidate, Date.now(), `spawn-${++this.jobId}`);
+    }
+
+    if (totalNbThreads > 0) {
+      const endTime = Date.now() + weakenTime + TIMING_MARGIN;
+      this.threadResets[candidate].push({ time: endTime, nbThreads: totalNbThreads });
     }
 
     return totalNbThreads;
