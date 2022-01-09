@@ -352,13 +352,13 @@ export async function main(ns) {
 
           const growthAmount = moneyMax / (moneyMax - tmpHackMoney);
           const idealGrowThreads = Math.ceil(ns.growthAnalyze(candidate, growthAmount));
-          const tmpGrowThreads = idealGrowThreads * GROWTH_MARGIN_FACTOR;
+          const tmpGrowThreads = Math.ceil(idealGrowThreads * GROWTH_MARGIN_FACTOR);
 
           const hackSecIncrease = tmpHackThreads * HACK_THREAD_SEC_INCREASE;
           const growSecIncrease = tmpGrowThreads * GROW_THREAD_SEC_INCREASE;
           const secIncrease = hackSecIncrease + growSecIncrease;
           const idealWeakenThreads = Math.ceil(secIncrease / WEAKEN_THREAD_SEC_DECREASE);
-          const tmpWeakenThreads = idealWeakenThreads * WEAKEN_MARGIN_FACTOR;
+          const tmpWeakenThreads = Math.ceil(idealWeakenThreads * WEAKEN_MARGIN_FACTOR);
 
           if (tmpHackThreads + tmpGrowThreads + tmpWeakenThreads > nbAvailableThreads) break;
 
