@@ -372,6 +372,10 @@ export async function main(ns) {
         const nbBatchThreads = hackThreads + growThreads + weakenThreads;
         if (nbBatchThreads < 1) continue;
 
+        const currWeakenTime = ns.getWeakenTime(candidate);
+        const weakenTime = Math.min(minWeakenTimes[candidate] ?? Infinity, currWeakenTime);
+        minWeakenTimes[candidate] = weakenTime;
+
         const maxNbBatches = Math.floor(weakenTime / DAEMON_RUN_EVERY);
         let nbBatches = 1;
         if (reachedMax) {
@@ -380,9 +384,6 @@ export async function main(ns) {
         }
         if (nbBatches === 0) continue;
 
-        const currWeakenTime = ns.getWeakenTime(candidate);
-        const weakenTime = Math.min(minWeakenTimes[candidate] ?? Infinity, currWeakenTime);
-        minWeakenTimes[candidate] = weakenTime;
         const timeUntilNextRun = Math.ceil(weakenTime / nbBatches);
 
         executor.allocate(candidate, { weakenThreads, growThreads, hackThreads });
