@@ -102,7 +102,9 @@ class Executor {
   }
 
   nbAvailableThreads(candidate) {
-    return this.threadAllowances[candidate] - this.threadUsed[candidate];
+    const allowances = this.threadAllowances[candidate] ?? 0;
+    const used = this.threadUsed[candidate] ?? 0;
+    return allowances - used;
   }
 
   configure(serversMap, threadAllowances) {
