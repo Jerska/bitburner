@@ -56,7 +56,6 @@ function computeThreadAllowances(servers, candidates, ramAllowanceFactor) {
 
   // Give 1/2 of the remaining threads to the first candidate, then 1/4, 1/8, etc. to the next ones
   for (const candidate of candidates) {
-    const nbThreadsRemaining = totalNbThreadsAllowed - nbThreadsUsed;
     res[candidate] += Math.floor(nbThreadsRemaining / 2);
     nbThreadsRemaining -= res[candidate];
   }
