@@ -100,6 +100,10 @@ class Executor {
     this.jobId = 0;
   }
 
+  nbAvailableThreads(candidate) {
+    return this.threadAllowances[candidate] - this.threadUsed[candidate];
+  }
+
   configure(serversMap, threadAllowances) {
     // Servers
     for (const [host, s] of Object.entries(serversMap)) {
@@ -237,8 +241,7 @@ class Executor {
   _addWeakenThread(candidate) {
     const server = this._findAvailableServer({ favorCores: true });
     if (!server) return 0;
-    const threadAllowed = this.threadAllowances[candidate] - this.threadUsed[candidate];
-    if (threadAllowed < 1) return 0;
+    if (this.nbAvailableThreads(candidate) < 1) return 0;
     server.threadAvailable -= 1;
     server.weakenThreads[candidate] += 1;
     this.threadUsed[candidate] += 1;
@@ -248,8 +251,7 @@ class Executor {
   _addGrowThread(candidate) {
     const server = this._findAvailableServer({ favorCores: true });
     if (!server) return 0;
-    const threadAllowed = this.threadAllowances[candidate] - this.threadUsed[candidate];
-    if (threadAllowed < 1) return 0;
+    if (this.nbAvailableThreads(candidate) < 1) return 0;
     server.threadAvailable -= 1;
     server.growThreads[candidate] += 1;
     this.threadUsed[candidate] += 1;
@@ -259,8 +261,7 @@ class Executor {
   _addHackThread(candidate) {
     const server = this._findAvailableServer({ favorCores: false });
     if (!server) return 0;
-    const threadAllowed = this.threadAllowances[candidate] - this.threadUsed[candidate];
-    if (threadAllowed < 1) return 0;
+    if (this.nbAvailableThreads(candidate) < 1) return 0;
     server.threadAvailable -= 1;
     server.hackThreads[candidate] += 1;
     this.threadUsed[candidate] += 1;
