@@ -171,7 +171,7 @@ class Executor {
     while (hackThreads > 0) {
       const couldHack = this._addHackThread(candidate);
       if (!couldHack) return;
-      --hackThreads;
+      hackThreads -= 1;
     }
   }
 
