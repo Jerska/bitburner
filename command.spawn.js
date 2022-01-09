@@ -344,6 +344,8 @@ export async function main(ns) {
         let growThreads = 0;
         let weakenThreads = 0;
 
+        ns.tprint(`Computing batch threads for ${candidate} (available: ${nbAvailableThreads})`);
+
         while (true) {
           const tmpHackThreads = hackThreads + 1;
           const tmpHackMoney = (tmpHackThreads / maxHackThreads) * maxHackAmount;
@@ -368,6 +370,8 @@ export async function main(ns) {
             break;
           }
         }
+
+        ns.tprint(`Computed threads: [w: ${weakenThreads}, g: ${growThreads}, h: ${hackThreads}]`);
 
         const nbBatchThreads = hackThreads + growThreads + weakenThreads;
         if (nbBatchThreads < 1) continue;
