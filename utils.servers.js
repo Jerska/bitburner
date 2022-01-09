@@ -6,17 +6,21 @@ export function getServer(ns, server) {
   return getServersMap(ns)[server];
 }
 
-export function getHosts(ns, { withoutHome = false } = {}) {
-  return Object.keys(getServersMap(ns, { withoutHome }));
+export function getHosts(ns, { withoutHome = false, adminOnly = false } = {}) {
+  return Object.keys(getServersMap(ns, { withoutHome, adminOnly = false }));
 }
 
-export function getServers(ns, { withoutHome = false } = {}) {
-  return Object.values(getServersMap(ns, { withoutHome }));
+export function getServers(ns, { withoutHome = false, adminOnly = false } = {}) {
+  return Object.values(getServersMap(ns, { withoutHome, adminOnly }));
 }
 
-export function getServersMap(ns, { withoutHome = false } = {}) {
-  const res = { ...readData(ns, 'servers') };
-  if (withoutHome) delete res[BASE_HOST];
+export function getServersMap(ns, { withoutHome = false, adminOnly = false } = {}) {
+  const res = {};
+  for (const [host, server] of readData(ns, 'servers')) {
+    if (withoutHome && host === BASE_HOST) continue;
+    if (adminOnly && !server.hasAdminRights) continue;
+    res[host] = server;
+  }
   return res;
 }
 

@@ -83,7 +83,6 @@ class Executor {
   configure(serversMap, threadAllowances) {
     // Servers
     for (const [host, s] of Object.entries(serversMap)) {
-      if (!s.hasAdminRights || s.ramAvailable < SCRIPT_RAM_USAGE) continue;
       if (!this.serversMap[host]) {
         this.serversMap[host] = {
           hostname: host,
@@ -253,7 +252,7 @@ export async function main(ns) {
     let state = readData(ns, 'hackState') ?? {};
     state.waitUntil ??= {};
 
-    const serversMap = getServersMap(ns);
+    const serversMap = getServersMap(ns, { adminOnly: true });
     const servers = Object.values(serversMap);
     const candidates = readData(ns, 'candidates');
 
