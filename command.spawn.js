@@ -41,7 +41,7 @@ function computeThreadAllowances(servers, candidates, ramAllowanceFactor) {
     if (server.hostname === BASE_HOST) {
       serverAllowedRam = Math.max(serverAllowedRam - 64, 0);
     }
-    totalNbThreadsAllowed += Math.floor(allowedRam / SCRIPT_RAM_USAGE);
+    totalNbThreadsAllowed += Math.floor(serverAllowedRam / SCRIPT_RAM_USAGE);
   }
 
   const res = candidates.reduce((res, c) => ({ ...res, [c]: 0 }), {});
