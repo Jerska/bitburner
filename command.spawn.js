@@ -333,27 +333,55 @@ export async function main(ns) {
         state.waitUntil[candidate] = Date.now() + weakenTime + TIMING_MARGIN;
       } else {
         // Compute how to get N% and restore it in 1 weaken duration
-        const targetHackAmount = server.moneyMax * targetMoneyRatio;
-        const targetGrowthAmount = GROWTH_MARGIN_FACTOR / (1 - targetMoneyRatio);
-        const hackThreads = Math.floor(ns.hackAnalyzeThreads(candidate, targetHackAmount));
-        const theoricalGrowThreads = Math.ceil(ns.growthAnalyze(candidate, targetGrowthAmount));
-        const growThreads = theoricalGrowThreads * GROWTH_MARGIN_FACTOR;
-        const hackSecIncrease = hackThreads * HACK_THREAD_SEC_INCREASE;
-        const growSecIncrease = growThreads * GROW_THREAD_SEC_INCREASE;
-        const secIncrease = hackSecIncrease + growSecIncrease;
-        const theoricalWeakenThreads = Math.ceil(secIncrease / WEAKEN_THREAD_SEC_DECREASE);
-        const weakenThreads = theoricalWeakenThreads * WEAKEN_MARGIN_FACTOR;
+        const moneyMax = server.moneyMax;
+        const maxHackAmount = moneyMax * targetMoneyRatio;
+        const maxHackThreads = Math.floor(ns.hackAnalyzeThreads(candidate, maxHackAmount));
+        const nbAvailableThreads = executor.nbAvailableThreads(candidate);
+
+        let reachedMax = false;
+        let hackThreads = 0;
+        let growThreads = 0;
+        let weakenThreads = 0;
+
+        while (true) {
+          const tmpHackThreads = hackThreads + 1;
+          const tmpHackMoney = (tmpHackThreads / maxHackThreads) * maxHackAmount;
+
+          const growthAmount = moneyMax / (moneyMax - tmpHackMoney);
+          const idealGrowThreads = Math.ceil(ns.growthAnalyze(candidate, growthAmount));
+          const tmpGrowThreads = idealGrowThreads * GROWTH_MARGIN_FACTOR;
+
+          const hackSecIncrease = tmpHackThreads * HACK_THREAD_SEC_INCREASE;
+          const growSecIncrease = tmpGrowThreads * GROW_THREAD_SEC_INCREASE;
+          const secIncrease = hackSecIncrease + growSecIncrease;
+          const idealWeakenThreads = Math.ceil(secIncrease / WEAKEN_THREAD_SEC_DECREASE);
+          const tmpWeakenThreads = idealWeakenThreads * WEAKEN_MARGIN_FACTOR;
+
+          if (tmpHackThreads + tmpGrowThreads + tmpWeakenThreads > nbAvailableThreads) break;
+
+          hackThreads = tmpHackThreads;
+          growThreads = tmpGrowThreads;
+          weakenThreads = tmpWeakenThreads;
+          if (tmpHackThreads === maxHackThreads) {
+            reachedMax = true;
+            break;
+          }
+        }
+
+        const nbBatchThreads = hackThreads + growThreads + weakenThreads;
+        if (nbBatchThreads < 1) continue;
+
+        const maxNbBatches = Math.floor(weakenTime / DAEMON_RUN_EVERY);
+        let nbBatches = 1;
+        if (reachedMax) {
+          const nbAllowedThreads = threadAllowances[candidate];
+          nbBatches = Math.min(maxNbBatches, Math.floor(nbAllowedThreads / nbBatchThreads));
+        }
+        if (nbBatches === 0) continue;
 
         const currWeakenTime = ns.getWeakenTime(candidate);
         const weakenTime = Math.min(minWeakenTimes[candidate] ?? Infinity, currWeakenTime);
         minWeakenTimes[candidate] = weakenTime;
-
-        const nbThreadsPerBatch = hackThreads + growThreads + weakenThreads;
-        const nbTotalThreads = threadAllowances[candidate];
-        const maxNbBatches = Math.floor(weakenTime / DAEMON_RUN_EVERY);
-        const nbBatches = Math.min(maxNbBatches, Math.floor(nbTotalThreads / nbThreadsPerBatch));
-        if (nbBatches === 0) continue;
-
         const timeUntilNextRun = Math.ceil(weakenTime / nbBatches);
 
         executor.allocate(candidate, { weakenThreads, growThreads, hackThreads });
@@ -361,7 +389,7 @@ export async function main(ns) {
         const nbThreadsAllocated = executor.schedule(ns, candidate, weakenTime);
 
         // prettier-ignore
-        log(`Scheduling batch for ${candidate}: ${nbThreadsAllocated}, next batch in: ${timeUntilNextRun}ms`);
+        log(`Scheduling batch for ${candidate}: ${nbThreadsAllocated} (expected = ${nbBatchThreads}), next batch in: ${timeUntilNextRun}ms`);
 
         state.waitUntil[candidate] = Date.now() + timeUntilNextRun;
       }
