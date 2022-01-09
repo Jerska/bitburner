@@ -96,6 +96,7 @@ class Executor {
 
     this.threadAllowances = {};
     this.threadUsed = {};
+    this.threadResets = {};
 
     this.jobId = 0;
   }
