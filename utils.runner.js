@@ -19,7 +19,7 @@ export function createRunner(
       firstRun = false;
       await cleanup();
       if (isDaemon) {
-        log(`Sleeping ${sleepDuration} ms`);
+        // log(`Sleeping ${sleepDuration} ms`);
         await ns.asleep(sleepDuration);
       }
     } while (!shouldStop);
