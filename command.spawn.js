@@ -383,7 +383,7 @@ export async function main(ns) {
         let nbBatches = 1;
         if (reachedMax) {
           const nbAllowedThreads = threadAllowances[candidate];
-          nbBatches = Math.min(maxNbBatches, Math.floor(nbAllowedThreads / nbBatchThreads));
+          nbBatches = Math.min(maxNbBatches, Math.floor(nbBatchThreads / nbAllowedThreads));
         }
         if (nbBatches === 0) continue;
 
