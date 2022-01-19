@@ -13,9 +13,8 @@ export function solve(input, res = [], stack = [], current = 0, leadingZero = fa
     if (newCurr <= 255) {
       solve(input.slice(1), res, stack, newCurr, false);
     }
+    if (current === 0) return res;
   }
-  if (current === 0) return res;
-  if (stack.length === 4) return res;
   solve(input.slice(1), res, [...stack, current], digit, digit === 0);
   return res;
 }
@@ -50,6 +49,6 @@ export const tests = [
   {
     name: 'with-zero',
     input: '120345',
-    expected: ['120.3.4.5', '1.203.4.5', '1.20.34.5', '1.20.3.45'],
+    expected: ['120.3.4.5', '12.0.34.5', '12.0.3.45', '1.203.4.5', '1.20.34.5', '1.20.3.45'],
   },
 ];
