@@ -42,8 +42,10 @@ export class CandidatesManager {
   }
 
   _computeThreadAllowances() {
+    const candidates = Object.keys(this.candidates);
+
     // Reset thread allowances
-    for (const candidate of Object.keys(this.candidates)) {
+    for (const candidate of candidates) {
       this.candidates[candidate].threadsAllowed = 0;
     }
 
