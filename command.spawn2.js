@@ -23,7 +23,7 @@ const HACK_THREAD_SEC_INCREASE = 0.002;
 export async function main(ns) {
   ns.disableLog('ALL');
 
-  const { opts } = parseArgs(ns, { maxArgs: 0, USAGE });
+  const { args, opts } = parseArgs(ns, { maxArgs: 1, USAGE });
   const isDaemon = opts.d;
 
   const ramAllowanceFactor = parseFloat(args[0] ?? '1.00');
