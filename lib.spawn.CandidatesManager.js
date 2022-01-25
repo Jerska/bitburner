@@ -1,3 +1,5 @@
+const BASE_HOST = 'home';
+
 const GROW_SCRIPT = 'script.grow.js';
 const HACK_SCRIPT = 'script.hack.js';
 const WEAKEN_SCRIPT = 'script.weaken.js';
