@@ -28,7 +28,7 @@ export async function main(ns) {
   const isDaemon = opts.d;
 
   const runner = createRunner(ns, isDaemon, { sleepDuration: DAEMON_RUN_EVERY });
-  await runner(async ({ log }) => {
+  await runner(async ({ log, firstRun }) => {
     if (types.includes('player')) {
       const player = ns.getPlayer();
       await upsertData(ns, 'player', player);
