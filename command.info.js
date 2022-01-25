@@ -48,8 +48,8 @@ export async function main(ns) {
         const prevMinHackTime = prevServer.minHackTime ?? 0;
 
         // Get server info
-        const ramAvailable = baseServer.maxRam - baseServer.ramUsed;
         const baseServer = ns.getServer(host);
+        const ramAvailable = baseServer.maxRam - baseServer.ramUsed;
         const weakenTime = ns.getWeakenTime(host);
         const minWeakenTime = Math.min(prevMinWeakenTime, weakenTime);
         const growTime = ns.getGrowTime(host);
