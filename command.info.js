@@ -43,19 +43,19 @@ export async function main(ns) {
       while (todo.length > 0) {
         const { host, path } = todo.shift();
         const prevServer = previousServersMap[host] ?? {};
-        const prevMinWeakenTime = prevServer.minWeakenTime ?? 0;
-        const prevMinGrowTime = prevServer.minGrowTime ?? 0;
-        const prevMinHackTime = prevServer.minHackTime ?? 0;
+        const prevMinWeakenTime = prevServer.minWeakenTime ?? Infinity;
+        const prevMinGrowTime = prevServer.minGrowTime ?? Infinity;
+        const prevMinHackTime = prevServer.minHackTime ?? Infinity;
 
         // Get server info
         const baseServer = ns.getServer(host);
         const ramAvailable = baseServer.maxRam - baseServer.ramUsed;
         const weakenTime = ns.getWeakenTime(host);
-        const minWeakenTime = Math.min(prevMinWeakenTime, weakenTime);
+        const minWeakenTime = firstRun ? weakenTime : Math.min(prevMinWeakenTime, weakenTime);
         const growTime = ns.getGrowTime(host);
-        const minGrowTime = Math.min(prevMinGrowTime, growTime);
+        const minGrowTime = firstRun ? growTime : Math.min(prevMinGrowTime, growTime);
         const hackTime = ns.getHackTime(host);
-        const minHackTime = Math.min(prevMinHackTime, hackTime);
+        const minHackTime = firstRun ? hackTime : Math.min(prevMinHackTime, hackTime);
 
         servers[host] = {
           ...baseServer,
