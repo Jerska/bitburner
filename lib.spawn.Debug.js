@@ -6,7 +6,7 @@ export class Debug {
 
   addMain(key, message) {
     const param = this._buildParam(key, message);
-    this.mainEntries = { ...this.mainEntries, ...params };
+    this.mainEntries = { ...this.mainEntries, ...param };
   }
 
   addCandidate(candidate, key, message) {
