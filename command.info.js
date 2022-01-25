@@ -14,6 +14,7 @@ const USAGE = 'info [-d] [<comma-separated-types>]';
 import { upsertData } from './utils.data.js';
 import { parseArgs } from './utils.args.js';
 import { createRunner } from './utils.runner.js';
+import { getServersMap } from './utils.servers.js';
 
 const DAEMON_RUN_EVERY = 500;
 const DEFAULT_TYPES = ['player', 'servers'];
@@ -37,21 +38,36 @@ export async function main(ns) {
     if (types.includes('servers')) {
       const todo = [{ host: BASE_HOST, path: [] }];
       const servers = {};
+      const previousServersMap = getServersMap(ns) ?? {};
 
       while (todo.length > 0) {
         const { host, path } = todo.shift();
+        const prevServer = previousServersMap[host] ?? {};
+        const prevMinWeakenTime = prevServer.minWeakenTime ?? 0;
+        const prevMinGrowTime = prevServer.minGrowTime ?? 0;
+        const prevMinHackTime = prevServer.minHackTime ?? 0;
 
         // Get server info
+        const ramAvailable = baseServer.maxRam - baseServer.ramUsed;
         const baseServer = ns.getServer(host);
-        const server = {
+        const weakenTime = ns.getWeakenTime(host);
+        const minWeakenTime = Math.min(prevMinWeakenTime, weakenTime);
+        const growTime = ns.getGrowTime(host);
+        const minGrowTime = Math.min(prevMinGrowTime, growTime);
+        const hackTime = ns.getHackTime(host);
+        const minHackTime = Math.min(prevMinHackTime, hackTime);
+
+        servers[host] = {
           ...baseServer,
-          ramAvailable: baseServer.maxRam - baseServer.ramUsed,
-          hackTime: ns.getHackTime(host),
-          growTime: ns.getGrowTime(host),
-          weakenTime: ns.getWeakenTime(host),
-          path: path,
+          ramAvailable,
+          weakenTime,
+          minWeakenTime,
+          growTime,
+          minGrowTime,
+          hackTime,
+          minHackTime,
+          path,
         };
-        servers[host] = server;
 
         // Get next servers
         const next = ns.scan(host);
