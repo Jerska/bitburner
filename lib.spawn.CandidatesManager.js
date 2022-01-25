@@ -6,7 +6,7 @@ const WEAKEN_SCRIPT = 'script.weaken.js';
 const UTILS_DATA = 'utils.data.js';
 const SCRIPT_RAM_USAGE = 1.8;
 
-const MIN_THREADS_RATIO = 0.1;
+const MIN_THREADS_RATIO = 0.01;
 
 export class CandidatesManager {
   constructor(debug, ramAllowanceFactor) {
