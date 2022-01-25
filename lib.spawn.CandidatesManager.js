@@ -78,8 +78,6 @@ export class CandidatesManager {
       const { threadsAllowed } = this.candidates[candidate];
       this.debug.addCandidate(candidate, { threadsAllowed });
     }
-
-    return res;
   }
 
   async _setupScripts(ns, host) {
